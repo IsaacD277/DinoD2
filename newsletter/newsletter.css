@@ -20,6 +20,31 @@ body {
     padding: 2.5em;
 }
 
+.container button {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    border: 2px solid var(--accent-color);
+    background: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.container button:hover {
+    background: white;
+    color: var(--accent-color);
+    transform: scale(1.005);
+}
+
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
 h1 {
     color: #2D3142;
     font-size: 24px;
@@ -50,6 +75,34 @@ h1 {
     color: #277A7D;
     font-size: 1.1em;
 }
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #FFFFFF;
+  min-width: 220px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.1);
+  z-index: 1;
+  border-radius: 20px;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown a:hover {
+    background-color: #F0F0F0;
+}
+
+.show {display: block;}
 
 form {
     margin-top: 2em;
@@ -211,7 +264,7 @@ trix-editor:focus {
     border-top: 2px solid #edf1f0;
 }
 
-button { 
+/* button { 
     padding: 0.85em 2em;
     border: none;
     border-radius: 9999px;
@@ -220,7 +273,7 @@ button {
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-family: inherit;
-}
+} */
 
 button[type="submit"] {
     background-color: #E17163;

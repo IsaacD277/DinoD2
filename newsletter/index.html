@@ -35,13 +35,23 @@
       <button id="logoutBtn" class="authentication" title="Logout">Logout</button>
     </div>
   </header>
+
+  <div class="stats">
+    <p>Sends: <span id="sendCount">0</span></p>
+    <p>Open Rate: <span id="openRate">0%</span></p>
+  </div>
   
   <div class="container">
-    <h1 id="pageTitle">Newsletter Editor</h1>
-    
-    <div class="stats">
-      <p>Sends: <span id="sendCount">0</span></p>
-      <p>Open Rate: <span id="openRate">0%</span></p>
+    <div class="heading">
+      <h1 id="pageTitle">Newsletter Editor</h1>
+      <div class="dropdown">
+        <button id="newsletterOptions" class="dropbtn">More</button>
+        <div id="myDropdown" class="dropdown-content">
+          <a id="changeSend">Change Send Date</a>
+          <a id="previewNewsletter">Preview Newsletter</a>
+          <a id="sendToEveryone">Send to All Subscribers</a>
+        </div>
+      </div>
     </div>
 
     <form id="newsletterForm">
@@ -105,6 +115,7 @@
 
     <div id="send"></div>
     <div id="stage"></div>
+    <div id="snackbar">Some text some message..</div>
   </div>
 
   <script src="/authentication.js"></script>

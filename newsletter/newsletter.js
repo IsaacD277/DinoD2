@@ -288,6 +288,7 @@ async function populateSubscriberDropdown() {
 //#region EVENT LISTENERS
 addEventListener("trix-initialize", handleTrixInitialize);
 
+// Setup page once authorization is verified
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {
@@ -317,9 +318,24 @@ window.addEventListener("authReady", async (e) => {
     }
 });
 
+// Upload image when added to Trix
 addEventListener("trix-attachment-add", (event) => {
   uploadImage(event);
 })
+
+// Close the dropdown if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
 
 //#endregion
 
@@ -327,6 +343,10 @@ addEventListener("trix-attachment-add", (event) => {
 document.getElementById('backBtn').onclick = () => {
   window.location.href = "/";
 };
+
+document.getElementById('newsletterOptions').onclick = () => {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
 
 document.getElementById("testNewsletterBtn").addEventListener("click", async () => {
     const userDropdown = document.getElementById("userDropdown");
@@ -411,6 +431,17 @@ document.getElementById('sendAllBtn').onclick = async () => {
   } catch (err) {
     sendDiv.textContent = err.message;
   }
-}
+};
 
+document.getElementById("changeSend").onclick = () => {
+  alert("Change Send Date");
+};
+
+document.getElementById("previewNewsletter").onclick = () => {
+  alert("Preview Newsletter");
+};
+
+document.getElementById("sendToEveryone").onclick = () => {
+  alert("Send to Everyone");
+};
 //#endregion
