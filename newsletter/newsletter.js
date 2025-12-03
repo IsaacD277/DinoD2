@@ -5,8 +5,7 @@ let newsletterData = null;
 let newsletter = null;
 let authRetried = false;
 let form;
-let stageDiv;
-let sendDiv;
+var modal = document.getElementById("sendDateModal");
 
 // Allows for production and development switching
 const version = getAPIMode();
@@ -90,16 +89,16 @@ async function loadNewsletterData(newsletterId) {
 
   return newsletter
   } catch (err) {
+    toastMessage("Error loading newsletter. Please refresh", false);
     console.error("Error loading newsletter:", err);
     return null;
   }
 }
 
 function setNewsletterDetails(newsletter) {
-  document.getElementById('subject').value = newsletter.subject || "";
+  document.getElementById('subject').value = newsletter.subject || "Untitled";
   document.getElementById('preview').value = newsletter.preview || "";
   newsletterData = newsletter.content || "";
-  document.getElementById('stageDropdown').value = newsletter.stage || "Draft";
   document.getElementById('sendDate').value = newsletter.sendDate || "";
   document.getElementById('pageTitle').textContent = "Edit Newsletter";
 
@@ -148,6 +147,7 @@ async function getUploadURL() {
             return theUrl
         }
     } catch (error) {
+        toastMessage("Error getting image URL. Try again.", false);
         console.error("Error fetching signed URL:", error);
         return null;
     }
@@ -193,6 +193,7 @@ async function uploadImage(event) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         };
     } catch (error) {
+        toastMessage("Error uploading image. Try again", false);
         console.error("Error uploading image:", error);
         return false;
     }
@@ -200,19 +201,16 @@ async function uploadImage(event) {
 
 async function handleFormSubmit(event) {
   event.preventDefault();
-  stageDiv.textContent = "";
 
   subject = document.getElementById('subject').value || "";
   preview = document.getElementById('preview').value || "";
   content = document.getElementById('content').value || "";
-  stage = document.getElementById('stageDropdown').value || "";
-  sendDate = document.getElementById('sendDate').value || ""
+  sendDate = document.getElementById('sendDate').value || "";
 
   const payload = {
     subject: subject,
     preview: preview,
     content: content,
-    stage: stage,
     sendDate: sendDate
   };
 
@@ -237,177 +235,98 @@ async function handleFormSubmit(event) {
       throw new Error("Failed to save newsletter");
     }
 
-    stageDiv.textContent = "Newsletter saved!";
+    toastMessage("Newsletter saved", true);
 
     // Update local variable
     Object.assign(newsletter, payload);
   } catch (err) {
-    stageDiv.textContent = err.message;
+    toastMessage("Failed to save newsletter", false);
+    console.error(err.message);
   }
 }
 
-async function populateSubscriberDropdown() {
-    const userDropdown = document.getElementById("userDropdown");
+async function updateSendDate() {
+  sendDate = document.getElementById('sendDate').value || ""
+
+  const payload = {
+    sendDate: sendDate
+  };
+
+  try {
+    const version = getAPIMode();
     token = localStorage.getItem("id_token");
-    // Populate users
-    try {
-        const subRes = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
-
-        if (subRes.status === 401) {
-            retry();
-        }
-
-        const subscribers = subRes.ok ? await subRes.json() : [];
-        userDropdown.innerHTML = "";
-        let foundActive = false;
-        subscribers.forEach(sub => {
-            if (sub.condition == "Subscribed") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-                opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-                userDropdown.appendChild(opt);
-            }
-        });
-        if (!foundActive) {
-            userDropdown.innerHTML = '<option value="">No active users</option>';
-        }
-    } catch (e) {
-        userDropdown.innerHTML = '<option value="">Error loading users</option>';
-    }
-}
-
-//#endregion
-
-//#region EVENT LISTENERS
-addEventListener("trix-initialize", handleTrixInitialize);
-
-// Setup page once authorization is verified
-window.addEventListener("authReady", async (e) => {
-    const loggedIn = e.detail.valid;
-    if (loggedIn) {
-        token = localStorage.getItem("id_token");
-        if (!token) {
-            console.warn("No id_token found after auth ready.");
-            return null;
-        }
-
-        form = document.getElementById('newsletterForm');
-        stageDiv = document.getElementById('stage');
-        sendDiv = document.getElementById('send');
-
-        newsletter = await loadNewsletterData(newsletterId);
-
-        getStats();
-        populateSubscriberDropdown();
-
-        if (form) {
-          form.addEventListener("submit", handleFormSubmit);
-        }
-
-        const existingEditor = document.querySelector("trix-editor");
-        if (existingEditor && existingEditor.editor) {
-            handleTrixInitialize({ target: existingEditor });
-        }
-    }
-});
-
-// Upload image when added to Trix
-addEventListener("trix-attachment-add", (event) => {
-  uploadImage(event);
-})
-
-// Close the dropdown if the user clicks outside of it
-window.onclick = function(event) {
-  if (!event.target.matches('.dropbtn')) {
-    var dropdowns = document.getElementsByClassName("dropdown-content");
-    var i;
-    for (i = 0; i < dropdowns.length; i++) {
-      var openDropdown = dropdowns[i];
-      if (openDropdown.classList.contains('show')) {
-        openDropdown.classList.remove('show');
+    const response = await fetch(
+      `https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        },
+        body: JSON.stringify(payload)
       }
+    );
+
+    if (response.status === 401) {
+      retry();
+    } if (!response.ok) {
+      throw new Error("Failed to update send date");
     }
+
+    toastMessage("Updated send date", true);
+
+    // Update local sendDate
+    newsletter.sendDate = sendDate;
+  } catch (err) {
+    toastMessage("Failed to update send date", false);
+    console.error(err.message);
   }
 }
 
-//#endregion
+async function sendPreviewEmail() {
+  token = localStorage.getItem("id_token");
 
-//#region BUTTONS
-document.getElementById('backBtn').onclick = () => {
-  window.location.href = "/";
-};
+  try {
+      const response = await fetch(`https://api.dinod2.com/${version}/email`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: token
+          },
+          body: JSON.stringify({
+              newsletterId: newsletterId,
+              previewEmail: true
+          })
+      });
 
-document.getElementById('newsletterOptions').onclick = () => {
-  document.getElementById("myDropdown").classList.toggle("show");
+      if (response.status === 401) {
+          retry();
+      } if (response.ok) {
+          return true;
+      } else {
+          const error = await response.text();
+          console.error(error);
+          return false;
+      }
+  } catch (err) {
+      console.error(err);
+      return false;
+  }
 }
 
-document.getElementById("testNewsletterBtn").addEventListener("click", async () => {
-    const userDropdown = document.getElementById("userDropdown");
-    const statusSpan = document.getElementById("testNewsletterStatus");
-    statusSpan.textContent = "";
-
-    if (!userDropdown.value || !newsletterId) {
-        statusSpan.textContent = "Please select both a user and a newsletter.";
-        return;
-    }
-
-    // parse the JSON payload we stored on the option value
-    let selected;
-    try {
-        selected = JSON.parse(userDropdown.value);
-    } catch (e) {
-        statusSpan.textContent = "Invalid user selected.";
-        return;
-    }
-
-    const userId = selected.id;
-    const recipient = selected.email;
-    token = localStorage.getItem("id_token");
-
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/email`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            },
-            body: JSON.stringify({
-                userId: userId,
-                emailAddress: recipient,
-                newsletterId: newsletterId
-            })
-        });
-
-        if (response.status === 401) {
-            retry();
-        } if (response.ok) {
-            statusSpan.textContent = "Email sent successfully!";
-        } else {
-            const error = await response.text();
-            statusSpan.textContent = "Failed: " + error;
-        }
-    } catch (err) {
-        statusSpan.textContent = "Error: " + err.message;
-    }
-});
-
-document.getElementById('sendAllBtn').onclick = async () => {
+async function broadcastEmail() {
   const payload = {
     newsletterId: newsletterId
   };
 
-  try {
-    if (newsletter.stage !== "Ready") {
-      throw new Error("Please make sure newsletter is in \"Ready\" status");
-    }
+  if (newsletter.stage !== "Draft") {
+    const message = "This newsletter has already been sent";
+    toastMessage(message, false);
+    console.error(message);
+    return
+  }
 
+  try {
     const version = getAPIMode();
     token = localStorage.getItem("id_token");
     const response = await fetch(
@@ -425,23 +344,114 @@ document.getElementById('sendAllBtn').onclick = async () => {
     if (response.status === 401) {
       retry();
     } if (!response.ok) {
-      throw new Error("Failed to send newsletter to all subscribers");
+      const message = "Failed to send newsletter";
+      throw new Error(message);
     }
-    sendDiv.textContent = "Newsletter sent to all subscribers!";
+
+    toastMessage("Sent newsletter to all subscribers", true);
+    newsletter.stage = "Sent"
   } catch (err) {
-    sendDiv.textContent = err.message;
+    toastMessage("Failed to send newsletter", false);
+    console.error(err.message);
   }
+}
+
+function toastMessage(text, success = true) {
+  // Get the snackbar DIV
+  var x = document.getElementById("snackbar");
+
+  x.textContent = text;
+  // Add the "show" class to DIV
+  x.className = success ? "showSuccess" : "showError";
+
+  // After 3 seconds, remove the show class from DIV
+  setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 2750);
+} 
+
+//#endregion
+
+//#region EVENT LISTENERS
+addEventListener("trix-initialize", handleTrixInitialize);
+
+// Setup page once authorization is verified
+window.addEventListener("authReady", async (e) => {
+    const loggedIn = e.detail.valid;
+    if (loggedIn) {
+        token = localStorage.getItem("id_token");
+        if (!token) {
+            console.warn("No id_token found after auth ready.");
+            return null;
+        }
+
+        form = document.getElementById('newsletterForm');
+        newsletter = await loadNewsletterData(newsletterId);
+        getStats();
+
+        if (form) {
+          form.addEventListener("submit", handleFormSubmit);
+        }
+
+        const existingEditor = document.querySelector("trix-editor");
+        if (existingEditor && existingEditor.editor) {
+            handleTrixInitialize({ target: existingEditor });
+        }
+    }
+});
+
+// Upload image when added to Trix
+addEventListener("trix-attachment-add", (event) => {
+  uploadImage(event);
+})
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+} 
+
+//#endregion
+
+//#region BUTTONS
+document.getElementById('backBtn').onclick = () => {
+  window.location.href = "/";
 };
 
 document.getElementById("changeSend").onclick = () => {
-  alert("Change Send Date");
+  modal.style.display = "block";
 };
 
-document.getElementById("previewNewsletter").onclick = () => {
-  alert("Preview Newsletter");
+document.getElementById("submitDate").onclick = async => {
+  updateSendDate();
+  modal.style.display = "none";
+}
+
+document.getElementsByClassName("close")[0].onclick = () => {
+  modal.style.display = "none";
+}
+
+document.getElementById("previewNewsletter").onclick = async () => {
+  const success = await sendPreviewEmail();
+
+  if (success) {
+    toastMessage("Preview email sent", true);
+  } else {
+    toastMessage("Failed to send preview", false);
+  }
 };
 
 document.getElementById("sendToEveryone").onclick = () => {
-  alert("Send to Everyone");
+  var text;
+
+  if (newsletter.stage !== "Draft") {
+    const message = "This newsletter has already been sent";
+    toastMessage(message, false);
+    console.error(message);
+    return
+  }
+  
+  if (confirm("This action cannot be undone.\nAre you sure you want to continue?")) {
+    broadcastEmail();
+  }
 };
 //#endregion

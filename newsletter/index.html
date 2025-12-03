@@ -35,11 +35,6 @@
       <button id="logoutBtn" class="authentication" title="Logout">Logout</button>
     </div>
   </header>
-
-  <div class="stats">
-    <p>Sends: <span id="sendCount">0</span></p>
-    <p>Open Rate: <span id="openRate">0%</span></p>
-  </div>
   
   <div class="container">
     <div class="heading">
@@ -52,6 +47,11 @@
           <a id="sendToEveryone">Send to All Subscribers</a>
         </div>
       </div>
+    </div>
+
+    <div class="stats">
+      <p>Sends: <span id="sendCount">0</span></p>
+      <p>Open Rate: <span id="openRate">0%</span></p>
     </div>
 
     <form id="newsletterForm">
@@ -69,53 +69,25 @@
       <input id="content" type="hidden" name="content">
       <trix-editor input="content"></trix-editor>
 
-      <div class="metadata-section">
-        <h3>Newsletter Settings</h3>
-        <div class="inline-fields">
-          <label>
-            Stage:
-            <select id="stageDropdown" name="stage" class="third-width" required>
-              <option value="Draft">Draft</option>
-              <option value="Ready">Ready</option>
-              <option value="Sent">Sent</option>
-            </select>
-          </label>
-
-          <label>
-            Send Date:
-            <input type="date" id="sendDate" name="sendDate" class="third-width">
-          </label>
-        </div>
-      </div>
-
       <button type="submit">Save Newsletter</button>
     </form>
 
-    <!-- Send Newsletter Section -->
     <div class="action-buttons">
-      <h3>Send Test Newsletter</h3>
-      <div class="send-newsletter-form">
-        <div>
-          <label for="userDropdown">Select Active User:</label>
-          <select id="userDropdown">
-            <option value="">Loading...</option>
-          </select>
-        </div>
-        <div class="action-buttons">
-          <button id="testNewsletterBtn">Send Test Newsletter to User</button>
-          <span id="testNewsletterStatus"></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="action-buttons">
-      <button id="sendAllBtn">Send to All Subscribers</button>
       <button id="backBtn">← Back to Newsletters</button>
     </div>
 
-    <div id="send"></div>
-    <div id="stage"></div>
-    <div id="snackbar">Some text some message..</div>
+    <div id="snackbar"></div>
+  </div>
+
+  <div id="sendDateModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <label>
+        Send Date:
+        <input type="date" id="sendDate" name="sendDate" class="third-width">
+      </label>
+      <button id="submitDate" class="modal-button" type="submit">Submit</button>
+    </div>
   </div>
 
   <script src="/authentication.js"></script>
