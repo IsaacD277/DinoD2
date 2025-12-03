@@ -76,11 +76,64 @@ function getAPIMode() {
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    let token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after auth ready.");
+        return null;
+    }
+    
+    initAPIMode();
+
+    const options = {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+    };
+
+    // Load profile data
+    const version = getAPIMode();
+    token = localStorage.getItem("id_token");
+    fetch(`https://api.dinod2.com/${version}/profile`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+        }
+    })
+    .then(res => {
+        if (res.status === 401) {
+            retry();
+        }
+        if (!res.ok) throw new Error("Failed to load profile");
+        return res.json();
+    })
+    .then(data => {
+        // Editable fields
+        document.getElementById('newsletterName').value = data.newsletterName || "";
+        document.getElementById('businessAddress').value = data.businessAddress || "";
+        document.getElementById('domain').value = data.domain || "";
+        document.getElementById('owner').value = data.owner || "";
+        document.getElementById('replyToEmail').value = data.replyToEmail || "";
+        document.getElementById('senderName').value = data.senderName || "";
+        document.getElementById('senderEmail').value = data.senderEmail || "";
+
+        // Read-only fields
+        document.getElementById('ownerEmail').value = data.ownerEmail || "";
+        const joinedDate = data.createdAt ? new Date(data.createdAt) : null;
+        document.getElementById('createdAt').value = joinedDate.toLocaleString("en-US", options) || "";
+        document.getElementById('maxSubscribers').value = data.maxSubscribers || "";
+        document.getElementById('plan').value = data.plan || "";
+    })
+    .catch(err => {
+        stageDiv.textContent = "Could not load profile: " + err.message;
+    });
+})
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
-    if (loggedIn) {
-        document.getElementById("loggedOutView").style.display = loggedIn ? "none" : "block";
-        document.getElementById("loggedInView").style.display = loggedIn ? "block" : "none";
+    if (loggedIn) {;
         let token = localStorage.getItem("id_token");
         if (!token) {
             console.warn("No id_token found after auth ready.");
@@ -178,13 +231,5 @@ form.addEventListener('submit', async (e) => {
         stageDiv.textContent = "❌ " + err.message;
     }
 });
-
-document.getElementById('backBtn').onclick = () => {
-    window.location.href = "index.html";
-};
-
-document.getElementById('getSubscribeToken').onclick = () => {
-    getSubscriberLink();
-}
 
 //#endregion

@@ -1,0 +1,220 @@
+/* TOP Setup */
+:root {
+    --background-color: #ebf5f6;
+    --background-color-hover: #f2fdff;
+    --basic-text-color: #2D3142;
+    --basic-drop-shadow: 0 4px 12px #00000014;
+    --accent-color: #E17163;
+    --success-background-color: #59bc6861;
+    --success-text-color: #346B3C;
+    --failure-background-color: #bc595961;
+    --failure-text-color: #6B3434;
+    --gray-background-color: #D9D9D9;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--background-color);
+    color: var(--basic-text-color);
+    line-height: 1.6;
+}
+/* BOTTOM Setup */
+
+/* TOP Topbar Styles */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: white;
+    z-index: 1000;
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-color);
+    flex: 1;
+    text-align: center;
+}
+
+.topbar h1:hover {
+    cursor: pointer;
+}
+
+.topbar .authentication {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    border: 2px solid var(--accent-color);
+    background: white;
+    color: var(--accent-color);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.topbar button:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: scale(1.02);
+}
+
+.topbar .navigation {
+    padding: 5px 10px;
+    border-radius: 10000px;
+    border: none;
+    color: var(--accent-color);
+    background-color: #00000000;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+/* BOTTOM Topbar Styles */
+
+
+/* TOP Content Container */
+.content {
+    padding: 80px 20px 40px 20px;
+    max-width: 1480px;
+    margin: 0 auto;
+}
+/* BOTTOM Content Container */
+
+/* TOP Section Styles */
+.section {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--basic-drop-shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0px;
+    padding: 0px 20px 0px 20px;
+}
+
+.section h3 {
+    color: var(--basic-text-color);
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.section button {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    border: 2px solid var(--accent-color);
+    background: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.section button:hover {
+    background: white;
+    color: var(--accent-color);
+    transform: scale(1.005);
+}
+/* BOTTOM Section Styles */
+
+/* TOP Card */
+.cards {
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+}
+
+.card:hover {
+    background: var(--background-color-hover);
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+.card {
+    background: var(--background-color);
+    display: flex;
+    flex: 1 1 400px;
+    height: 140px;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 20px;
+    box-shadow: 1px 1px 5px #2d314236;
+    transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card .subject {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.card .preview {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 15px;
+}
+
+.card .status {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    margin: 0px;
+    color: var(--success-text-color);
+}
+
+.card .sendDate {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    margin: 0px;
+}
+
+.card .statusRectangle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: fit-content;
+    min-width: 35px;
+    padding: 1px 20px;
+    background: var(--success-background-color);
+    border-radius: 1000px;
+    margin: 5px 5px 5px 0px;
+}
+
+.card .sendDateRectangle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: fit-content;
+    min-width: 35px;
+    padding: 1px 20px;
+    background: var(--gray-background-color);
+    border-radius: 1000px;
+    margin: 5px 5px 5px 5px;
+}
+
+.card .bottom {
+    display: flex;
+}
+
+
+/* BOTTOM Card */

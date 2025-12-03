@@ -2,6 +2,8 @@
 let token = null;
 let authRetried = false;
 
+renderNewsletterCards();
+
 //#endregion
 
 //#region FUNCTIONS
@@ -57,66 +59,77 @@ async function getNewsletters() {
 
         const newsletters = await response.json();
         newsletters.sort( compare );
-        renderNewsletters(newsletters);
+        console.log(newsletters);
+        renderNewsletterCards(newsletters);
     } catch (error) {
         console.error("Error fetching newsletters:", error);
         return null;
     }
 }
 
-function renderNewsletters(newsletters) {
-    const table = document.getElementById("newslettersTable");
-    const tbody = table.querySelector("tbody");
-    tbody.innerHTML = "";
+function renderNewsletterCards(newsletters) {
+    const cards = document.getElementById("newsletterCards");
 
-    if (!newsletters || newsletters.length === 0) {
-        tbody.innerHTML = "<tr><td colspan ='5'>No newsletters yet.</td></tr>";
+    if (!newsletters) {
+        cards.innerHTML = "<p>No newsletters yet.</p>";
         return;
     }
 
+    cards.innerHTML = ``
+
     newsletters.forEach(newsletter => {
-        const tr = document.createElement("tr");
+        const card = document.createElement("div");
+        card.id = newsletter.id;
+        card.className = "card";
 
-        const subjectTd = document.createElement("td");
-        subjectTd.textContent = newsletter.subject || "";
+        const content = document.createElement("div");
+        content.innerHTML = `
+            <p class="subject">${newsletter.subject ? truncate(newsletter.subject, 35) : "Untitled"}</p>
+            <p class="preview">${newsletter.preview ? truncate(newsletter.preview, 50) : "No Preview"}</p>
+            <div class="bottom">
+                <div class="statusRectangle">
+                    <p class="status">${newsletter.stage}</p>
+                </div>
+                <div class="sendDateRectangle">
+                    <p class="sendDate">${newsletter.sendDate ? newsletter.sendDate : "No Send Date"}</p>
+                </div>
+            </div>
+        `;
 
-        const previewTd = document.createElement("td");
-        previewTd.textContent = newsletter.preview || "";
+        card.appendChild(content);
+        
+        card.addEventListener ("click", () => {
+            window.location.href = `/newsletter/?newsletterId=${newsletter.id}`;
+        })
 
-        const stageTd = document.createElement("td");
-        stageTd.textContent = newsletter.stage;
+        cards.appendChild(card);
+    
+    })
+}
 
-        const sendDateTd = document.createElement("td");
-        sendDateTd.textContent = newsletter.sendDate;
-
-        const editTd = document.createElement("td");
-        const button = document.createElement("button");
-        button.textContent = "Edit";
-
-        button.addEventListener("click", () => {
-            window.location.href = `newsletter.html?newsletterId=${newsletter.id}`;
-        });
-
-        editTd.appendChild(button);
-
-        tr.appendChild(subjectTd);
-        tr.appendChild(previewTd);
-        tr.appendChild(stageTd);
-        tr.appendChild(sendDateTd);
-        tr.appendChild(editTd);
-
-        tbody.appendChild(tr);
-    });
+function truncate(input, maxCharacters) {
+    if (input.length > maxCharacters) {
+        return input.substring(0,maxCharacters-2) + '...';
+    }
+    return input;
 }
 
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after auth ready.");
+        return null;
+    }
+    getAPIMode();
+    getNewsletters();
+})
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {
-        document.getElementById("loggedOutView").style.display = loggedIn ? "none" : "block";
-        document.getElementById("loggedInView").style.display = loggedIn ? "block" : "none";
         token = localStorage.getItem("id_token");
         if (!token) {
             console.warn("No id_token found after auth ready.");
@@ -152,16 +165,12 @@ document.getElementById("addNewsletter").addEventListener("click", async () => {
         data = await response.json();
         const newsletterId = data.id;
         
-        window.location.href = `newsletter.html?newsletterId=${newsletterId}`;
+        window.location.href = `/newsletter?newsletterId=${newsletterId}`;
 
     } catch (error) {
         console.error(error);
         return null
     }
-});
-
-document.getElementById("goToSubscribers").addEventListener("click", () => {
-    window.location.href = 'subscribers.html';
 });
 
 //#endregion

@@ -11,134 +11,11 @@ body {
     line-height: 1.6;
 }
 
-/* Topbar Styles */
-.topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-.topbar h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: #E17163;
-    flex: 1;
-    text-align: center;
-}
-
-.topbar-left,
-.topbar-right {
-    display: flex;
-    gap: 10px;
-    min-width: 120px;
-}
-
-.topbar-right {
-    justify-content: flex-end;
-}
-
-.profile-btn,
-.logout-btn,
-.login-btn {
-    padding: 8px 16px;
-    border-radius: 9999px;
-    border: 2px solid #E17163;
-    background: white;
-    color: #E17163;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: 'Montserrat', sans-serif;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.profile-btn:hover,
-.logout-btn:hover,
-.login-btn:hover {
-    background: #E17163;
-    color: white;
-    transform: scale(1.05);
-}
-
 /* Content Container */
 .content {
     padding: 80px 20px 40px 20px;
     max-width: 1200px;
     margin: 0 auto;
-}
-
-/* Logged Out View */
-#loggedOutView {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    text-align: center;
-    padding: 20px;
-}
-
-#loggedOutView .topbar {
-    /* Override topbar positioning for logged-out view */
-    position: fixed;
-}
-
-#loggedOutView .message-box {
-    background: white;
-    border-radius: 20px;
-    padding: 3em;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
-    width: 100%;
-    margin-top: calc(33.33vh - 80px);
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#loggedOutView .message-box p {
-    font-size: 18px;
-    margin: 0.5em 0;
-    color: #2D3142;
-}
-
-#loggedOutView .message-box p:first-child,
-#loggedOutView .message-box p:last-child {
-    color: #E17163;
-    font-weight: 600;
-}
-
-#loggedOutView .message-box p:first-child {
-    font-size: 20px;
-}
-
-#loggedOutView .message-box p:last-child {
-    margin-bottom: 1.5em;
-}
-
-#loggedOutView .login-btn {
-    margin-top: 1em;
-}
-
-#loggedOutView .login-btn:hover {
-    transform: scale(1.05);
-}
-
-#loggedOutView .topbar-left,
-#loggedOutView .topbar-right {
-    display: none;
-}
-
-#loggedInView {
-    display: none;
 }
 
 /* Section Styles */
@@ -212,29 +89,6 @@ input:-webkit-autofill:focus {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-button {
-    padding: 0.75em 2em;
-    border: none;
-    border-radius: 9999px;
-    font-size: 1em;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Montserrat', sans-serif;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-button:not(.profile-btn):not(.logout-btn):not(.login-btn) {
-    background-color: #E17163;
-    color: white;
-    box-shadow: 0 4px 12px rgba(225, 113, 99, 0.3);
-}
-
-button:not(.profile-btn):not(.logout-btn):not(.login-btn):hover {
-    background-color: #277A7D;
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(39, 122, 125, 0.4);
-}
-
 #addNewsletter {
     margin-bottom: 1.5em;
     margin-bottom: 0;
@@ -267,7 +121,8 @@ td {
 }
 
 tbody tr:hover {
-    background-color: #f7fafc;
+    background-color: #edf1f0;
+    cursor: pointer;
 }
 
 tbody tr:last-child td {

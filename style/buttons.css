@@ -1,0 +1,22 @@
+.profile-btn,
+.logout-btn,
+.login-btn {
+    padding: 8px 16px;
+    border-radius: 9999px;
+    border: 2px solid #E17163;
+    background: white;
+    color: #E17163;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.profile-btn:hover,
+.logout-btn:hover,
+.login-btn:hover {
+    background: #E17163;
+    color: white;
+    transform: scale(1.05);
+}

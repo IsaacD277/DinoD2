@@ -101,24 +101,17 @@ function renderSubscribers(subscribers) {
         const statusTd = document.createElement("td");
         statusTd.textContent = sub.condition || "";
 
-        const actionTd = document.createElement("td");
-        const button = document.createElement("button");
-        button.textContent = "Edit";
+        tr.appendChild(nameTd);
+        tr.appendChild(emailTd);
+        tr.appendChild(joinedTd);
+        tr.appendChild(statusTd);
 
-        button.addEventListener("click", () => {
-            window.location.href = `subscriber.html?subscriberId=${sub.id}`;
-        });
+        tr.addEventListener ("click", () => {
+            window.location.href = `/subscribers/subscriber/?subscriberId=${sub.id}`;
+        })
 
-            actionTd.appendChild(button);
-
-            tr.appendChild(nameTd);
-            tr.appendChild(emailTd);
-            tr.appendChild(joinedTd);
-            tr.appendChild(statusTd);
-            tr.appendChild(actionTd);
-
-            tbody.appendChild(tr);
-        });
+        tbody.appendChild(tr);
+    });
 }
 
 function totalSubscribers(subscribers) {
@@ -134,11 +127,19 @@ function totalSubscribers(subscribers) {
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    let token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after auth ready.");
+        return null;
+    }
+    getAPIMode();
+    getSubscribers();
+})
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {
-        document.getElementById("loggedOutView").style.display = loggedIn ? "none" : "block";
-        document.getElementById("loggedInView").style.display = loggedIn ? "block" : "none";
         let token = localStorage.getItem("id_token");
         if (!token) {
             console.warn("No id_token found after auth ready.");
@@ -193,11 +194,7 @@ form.addEventListener("submit", async (e) => {
 });
 
 document.getElementById("profileBtn").addEventListener("click", () => {
-    window.location.href = `profile.html`;
+    window.location.href = `/profile/`;
 });
-
-document.getElementById('backBtn').onclick = () => {
-  window.location.href = "index.html";
-};
 
 //#endregion

@@ -57,6 +57,10 @@ async function checkAuthStatus(forceRefresh = false) {
     if (idToken === undefined || idToken === null) {
         const hasToken = await getToken();
         setAuthStatus(hasToken);
+        if (!hasToken) {
+            localStorage.clear();
+            window.location.href = "https://dinod2.com";
+        }
         identifyUser();
         return;
     }
@@ -69,6 +73,10 @@ async function checkAuthStatus(forceRefresh = false) {
         const theRefreshToken = localStorage.getItem("refresh_token");
         const refreshed = await refreshToken(theRefreshToken);
         setAuthStatus(refreshed);
+        if (!refreshed) {
+            localStorage.clear();
+            window.location.href = "https://dinod2.com";
+        }
         identifyUser();
         return;
     }
@@ -187,10 +195,6 @@ function identifyUser() {
 
 //#region EVENT LISTENERS
 
-// document.addEventListener("DOMContentLoaded", () => {
-
-// });
-
 // Run on page load
 parseUrl();
 
@@ -216,11 +220,11 @@ window.addEventListener("retryAuth", async (e) => {
 
 //#region BUTTONS
 // Login Button
-document.getElementById("loginBtn").onclick = () => {
-    localStorage.clear();
-    const theUrl = `${domain}/login?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
-    window.location.assign(theUrl);
-};
+// document.getElementById("loginBtn").onclick = () => {
+//     localStorage.clear();
+//     const theUrl = `${domain}/login?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
+//     window.location.assign(theUrl);
+// };
 
 // Logout Button
 document.getElementById("logoutBtn").onclick = () => {
@@ -229,7 +233,19 @@ document.getElementById("logoutBtn").onclick = () => {
 };
 
 document.getElementById("profileBtn").addEventListener("click", () => {
-    window.location.href = `profile.html`;
+    window.location.href = `/profile/`;
+});
+
+document.getElementById("subscribersBtn").addEventListener("click", () => {
+    window.location.href = `/subscribers/`;
+})
+
+document.getElementById("newslettersBtn").addEventListener("click", () => {
+    window.location.href = '/';
+});
+
+document.getElementById("logo").addEventListener("click", () => {
+    window.location.href = '/';
 });
 
 //#endregion
