@@ -84,14 +84,14 @@ function renderNewsletterCards(newsletters) {
 
         const content = document.createElement("div");
         content.innerHTML = `
-            <p class="subject">${truncate(newsletter.subject, 35)}</p>
-            <p class="preview">${truncate(newsletter.preview, 50)}</p>
+            <p class="subject">${newsletter.subject ? truncate(newsletter.subject, 35) : "Untitled"}</p>
+            <p class="preview">${newsletter.preview ? truncate(newsletter.preview, 50) : "No Preview"}</p>
             <div class="bottom">
                 <div class="statusRectangle">
                     <p class="status">${newsletter.stage}</p>
                 </div>
                 <div class="sendDateRectangle">
-                    <p class="sendDate">${newsletter.sendDate}</p>
+                    <p class="sendDate">${newsletter.sendDate ? newsletter.sendDate : "No Send Date"}</p>
                 </div>
             </div>
         `;
@@ -165,7 +165,7 @@ document.getElementById("addNewsletter").addEventListener("click", async () => {
         data = await response.json();
         const newsletterId = data.id;
         
-        window.location.href = `newsletter.html?newsletterId=${newsletterId}`;
+        window.location.href = `/newsletter?newsletterId=${newsletterId}`;
 
     } catch (error) {
         console.error(error);
