@@ -283,7 +283,8 @@ async function updateSendDate() {
   }
 }
 
-async function sendPreviewEmail() {
+async function sendPreviewEmail(event) {
+  handleFormSubmit(event);
   token = localStorage.getItem("id_token");
 
   try {
@@ -314,7 +315,9 @@ async function sendPreviewEmail() {
   }
 }
 
-async function broadcastEmail() {
+async function broadcastEmail(event) {
+  handleFormSubmit(event);
+
   const payload = {
     newsletterId: newsletterId
   };
@@ -430,8 +433,8 @@ document.getElementsByClassName("close")[0].onclick = () => {
   modal.style.display = "none";
 }
 
-document.getElementById("previewNewsletter").onclick = async () => {
-  const success = await sendPreviewEmail();
+document.getElementById("previewNewsletter").onclick = async (event) => {
+  const success = await sendPreviewEmail(event);
 
   if (success) {
     toastMessage("Preview email sent", true);
@@ -440,7 +443,7 @@ document.getElementById("previewNewsletter").onclick = async () => {
   }
 };
 
-document.getElementById("sendToEveryone").onclick = () => {
+document.getElementById("sendToEveryone").onclick = (event) => {
   var text;
 
   if (newsletter.stage !== "Draft") {
@@ -451,7 +454,7 @@ document.getElementById("sendToEveryone").onclick = () => {
   }
   
   if (confirm("This action cannot be undone.\nAre you sure you want to continue?")) {
-    broadcastEmail();
+    broadcastEmail(event);
   }
 };
 //#endregion
