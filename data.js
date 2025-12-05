@@ -164,8 +164,12 @@ document.getElementById("addNewsletter").addEventListener("click", async () => {
 
         data = await response.json();
         const newsletterId = data.id;
-        
-        window.location.href = `/newsletter?newsletterId=${newsletterId}`;
+
+        posthog.capture('newsletter_created', {
+            newsletterId: newsletterId,
+        })
+
+        window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
 
     } catch (error) {
         console.error(error);

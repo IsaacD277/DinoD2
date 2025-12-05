@@ -35,6 +35,8 @@ function retry() {
             },
         });
 
+        posthog.capture('authorization_retried');
+
         window.dispatchEvent(retryAuth);
     };
 }
@@ -188,6 +190,13 @@ async function uploadImage(event) {
             };
 
             event.attachment.setAttributes(attributes);
+
+            posthog.capture('newsletter_image_uploaded', {
+                newsletterId: newsletterId,
+                successful: true,
+                imageUrl: imageLink,
+                contentType: image.type
+            });
             return true;
         } else {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -351,11 +360,11 @@ async function broadcastEmail(event) {
       throw new Error(message);
     }
 
-    toastMessage("Sent newsletter to all subscribers", true);
     newsletter.stage = "Sent"
+    return true;
   } catch (err) {
-    toastMessage("Failed to send newsletter", false);
     console.error(err.message);
+    return false;
   }
 }
 
@@ -368,7 +377,7 @@ function toastMessage(text, success = true) {
   x.className = success ? "showSuccess" : "showError";
 
   // After 3 seconds, remove the show class from DIV
-  setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 2750);
+  setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 3999);
 } 
 
 //#endregion
@@ -436,6 +445,11 @@ document.getElementsByClassName("close")[0].onclick = () => {
 document.getElementById("previewNewsletter").onclick = async (event) => {
   const success = await sendPreviewEmail(event);
 
+  posthog.capture('newsletter_previewed', {
+    newsletterId: newsletterId,
+    successful: success
+  });
+
   if (success) {
     toastMessage("Preview email sent", true);
   } else {
@@ -443,9 +457,7 @@ document.getElementById("previewNewsletter").onclick = async (event) => {
   }
 };
 
-document.getElementById("sendToEveryone").onclick = (event) => {
-  var text;
-
+document.getElementById("sendToEveryone").onclick = async (event) => {
   if (newsletter.stage !== "Draft") {
     const message = "This newsletter has already been sent";
     toastMessage(message, false);
@@ -454,7 +466,18 @@ document.getElementById("sendToEveryone").onclick = (event) => {
   }
   
   if (confirm("This action cannot be undone.\nAre you sure you want to continue?")) {
-    broadcastEmail(event);
+    const success = await broadcastEmail(event);
+
+    posthog.capture('newsletter_broadcast', {
+      newsletterId: newsletterId,
+      successful: success
+    });
+
+    if (success) {
+      toastMessage("Sent newsletter to all subscribers", success);
+    } else {
+      toastMessage("Failed to send newsletter", success);
+    }
   }
 };
 //#endregion
