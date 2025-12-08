@@ -1,9 +1,6 @@
 //#region INITIALIZE
 let token = null;
 let authRetried = false;
-
-renderNewsletterCards();
-
 //#endregion
 
 //#region FUNCTIONS
@@ -37,6 +34,13 @@ function compare( a, b ) {
     return -1;
   }
   return 0;
+}
+
+function truncate(input, maxCharacters) {
+    if (input.length > maxCharacters) {
+        return input.substring(0,maxCharacters-2) + '...';
+    }
+    return input;
 }
 
 async function getNewsletters() {
@@ -107,43 +111,7 @@ function renderNewsletterCards(newsletters) {
     })
 }
 
-function truncate(input, maxCharacters) {
-    if (input.length > maxCharacters) {
-        return input.substring(0,maxCharacters-2) + '...';
-    }
-    return input;
-}
-
-//#endregion
-
-//#region EVENT LISTENERS
-window.addEventListener("DOMContentLoaded", async (e) => {
-    token = localStorage.getItem("id_token");
-    if (!token) {
-        console.warn("No id_token found after auth ready.");
-        return null;
-    }
-    getAPIMode();
-    getNewsletters();
-})
-
-window.addEventListener("authReady", async (e) => {
-    const loggedIn = e.detail.valid;
-    if (loggedIn) {
-        token = localStorage.getItem("id_token");
-        if (!token) {
-            console.warn("No id_token found after auth ready.");
-            return null;
-        }
-        getAPIMode();
-        getNewsletters();
-    }
-});
-
-//#endregion
-
-//#region BUTTONS
-document.getElementById("addNewsletter").addEventListener("click", async () => {
+async function createNewsletter() {
     const version = getAPIMode();
     token = localStorage.getItem("id_token");
     try {
@@ -175,6 +143,29 @@ document.getElementById("addNewsletter").addEventListener("click", async () => {
         console.error(error);
         return null
     }
+}
+
+//#endregion
+
+//#region EVENT LISTENERS
+window.addEventListener("authReady", async (e) => {
+    const loggedIn = e.detail.valid;
+    if (loggedIn) {
+        token = localStorage.getItem("id_token");
+        if (!token) {
+            console.warn("No id_token found after auth ready.");
+            return null;
+        }
+        getAPIMode();
+        getNewsletters();
+    }
+});
+
+//#endregion
+
+//#region BUTTONS
+document.getElementById("addNewsletter").addEventListener("click", async () => {
+    await createNewsletter();
 });
 
 //#endregion
