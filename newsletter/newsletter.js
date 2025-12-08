@@ -245,11 +245,19 @@ async function handleFormSubmit(event) {
     }
 
     toastMessage("Newsletter saved", true);
+    posthog.capture('newsletter_saved', {
+      newsletterId: newsletterId,
+      successful: true
+    });
 
     // Update local variable
     Object.assign(newsletter, payload);
   } catch (err) {
     toastMessage("Failed to save newsletter", false);
+    posthog.capture('newsletter_saved', {
+      newsletterId: newsletterId,
+      successful: false
+    });
     console.error(err.message);
   }
 }
@@ -378,7 +386,7 @@ function toastMessage(text, success = true) {
 
   // After 3 seconds, remove the show class from DIV
   setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 3999);
-} 
+}
 
 //#endregion
 
