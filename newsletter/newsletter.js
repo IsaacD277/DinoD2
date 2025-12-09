@@ -159,12 +159,13 @@ async function uploadImage(event) {
     try {
         const image = event.attachment.file;
         if (!image) {
-            throw new Error("There is no image to upload");
+            return;
         }
 
         responseObject = await getUploadURL();
 
         console.log("Uploading to: " + responseObject.url + responseObject.fields.key);
+        toastMessage("Uploading image...", true);
 
         const formdata = new FormData();
 
@@ -197,6 +198,7 @@ async function uploadImage(event) {
                 imageUrl: imageLink,
                 contentType: image.type
             });
+            toastMessage("Image uploaded.")
             return true;
         } else {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -375,6 +377,34 @@ async function broadcastEmail(event) {
     return false;
   }
 }
+
+async function deleteNewsletter() {
+  try {
+    const version = getAPIMode();
+    token = localStorage.getItem("id_token");
+    const response = await fetch(
+      `https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        }
+      }
+    );
+
+    if (response.status === 401) {
+      retry();
+    } if (!response.ok) {
+      throw new Error("Failed to delete newsletter");
+    }
+
+    return true;
+  } catch (err) {
+    console.error(err.message);
+    return false;
+  }
+}
 //#endregion
 
 //#region EVENT LISTENERS
@@ -475,4 +505,23 @@ document.getElementById("sendToEveryone").onclick = async (event) => {
     }
   }
 };
+
+document.getElementById("deleteNewsletter").onclick = async () => {
+  if (confirm("This action cannot be undone.\nAre you sure you want to delete?")) {
+    toastMessage("Deleting newsletter...", true);
+    const success = await deleteNewsletter();
+
+    posthog.capture('newsletter_deleted', {
+      newsletterId: newsletterId,
+      successful: success
+    });
+
+    if (success) {
+      toastMessage("Deleted newsletter", success);
+      window.location.href = '/';
+    } else {
+      toastMessage("Failed to delete newsletter", success);
+    }
+  }
+}
 //#endregion

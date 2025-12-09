@@ -472,7 +472,11 @@ button[type="button"]:hover {
   color: black;
   text-decoration: none;
   cursor: pointer;
-} 
+}
+
+#deleteNewsletter {
+    color: red;
+}
 
 /* Animations to fade the snackbar in and out */
 @-webkit-keyframes fadein {
