@@ -81,6 +81,9 @@ function renderNewsletterCards(newsletters) {
         card.appendChild(content);
         
         card.addEventListener ("click", () => {
+            posthog.capture('newsletterEditorPage_visit', {
+                newsletterId: newsletter.id
+            });
             window.location.href = `/newsletter/?newsletterId=${newsletter.id}`;
         })
 

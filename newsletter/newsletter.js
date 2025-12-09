@@ -431,6 +431,7 @@ window.onclick = function(event) {
 
 //#region BUTTONS
 document.getElementById('backBtn').onclick = () => {
+  posthog.capture('newslettersPage_visit');
   window.location.href = "/";
 };
 

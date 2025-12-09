@@ -272,18 +272,23 @@ document.getElementById("logoutBtn").onclick = () => {
 };
 
 document.getElementById("profileBtn").addEventListener("click", () => {
+    posthog.capture('profilePage_visit');
     window.location.href = `/profile/`;
 });
 
 document.getElementById("subscribersBtn").addEventListener("click", () => {
+    posthog.capture('subscribersPage_visit');
     window.location.href = `/subscribers/`;
 })
 
 document.getElementById("newslettersBtn").addEventListener("click", () => {
+    posthog.capture('newslettersPage_visit');
     window.location.href = '/';
 });
 
 document.getElementById("logo").addEventListener("click", () => {
+    posthog.capture('newslettersPage_visit');
+    posthog.capture('logoClick');
     window.location.href = '/';
 });
 

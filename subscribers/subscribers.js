@@ -85,6 +85,9 @@ function renderSubscribers(subscribers) {
         tr.appendChild(statusTd);
 
         tr.addEventListener ("click", () => {
+            posthog.capture('subscriberEditorPage_visit', {
+                subscriberId: sub.id
+            });
             window.location.href = `/subscribers/subscriber/?subscriberId=${sub.id}`;
         })
 

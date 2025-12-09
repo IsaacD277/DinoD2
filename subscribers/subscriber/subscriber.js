@@ -136,7 +136,8 @@ form.addEventListener('submit', async (e) => {
 });
 
 document.getElementById('backBtn').onclick = () => {
-  window.location.href = "/subscribers/";
+    posthog.capture('subscribersPage_visit');
+    window.location.href = "/subscribers/";
 };
 
 //#endregion
