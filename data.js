@@ -148,6 +148,16 @@ async function createNewsletter() {
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    let token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after page load.");
+        return null;
+    }
+    getAPIMode();
+    getNewsletters();
+});
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {
