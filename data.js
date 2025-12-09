@@ -1,34 +1,9 @@
 //#region INITIALIZE
 let token = null;
 let authRetried = false;
-
-renderNewsletterCards();
-
 //#endregion
 
 //#region FUNCTIONS
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    if (!version) {
-        localStorage.setItem("version", "v0"); // "v0"
-        const version = localStorage.getItem("version");
-    }
-    return version;
-}
-
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        window.dispatchEvent(retryAuth);
-    };
-}
-
 function compare( a, b ) {
   if ( a.sendDate < b.sendDate ){
     return 1;
@@ -37,6 +12,13 @@ function compare( a, b ) {
     return -1;
   }
   return 0;
+}
+
+function truncate(input, maxCharacters) {
+    if (input.length > maxCharacters) {
+        return input.substring(0,maxCharacters-2) + '...';
+    }
+    return input;
 }
 
 async function getNewsletters() {
@@ -99,6 +81,9 @@ function renderNewsletterCards(newsletters) {
         card.appendChild(content);
         
         card.addEventListener ("click", () => {
+            posthog.capture('newsletterEditorPage_visit', {
+                newsletterId: newsletter.id
+            });
             window.location.href = `/newsletter/?newsletterId=${newsletter.id}`;
         })
 
@@ -107,43 +92,7 @@ function renderNewsletterCards(newsletters) {
     })
 }
 
-function truncate(input, maxCharacters) {
-    if (input.length > maxCharacters) {
-        return input.substring(0,maxCharacters-2) + '...';
-    }
-    return input;
-}
-
-//#endregion
-
-//#region EVENT LISTENERS
-window.addEventListener("DOMContentLoaded", async (e) => {
-    token = localStorage.getItem("id_token");
-    if (!token) {
-        console.warn("No id_token found after auth ready.");
-        return null;
-    }
-    getAPIMode();
-    getNewsletters();
-})
-
-window.addEventListener("authReady", async (e) => {
-    const loggedIn = e.detail.valid;
-    if (loggedIn) {
-        token = localStorage.getItem("id_token");
-        if (!token) {
-            console.warn("No id_token found after auth ready.");
-            return null;
-        }
-        getAPIMode();
-        getNewsletters();
-    }
-});
-
-//#endregion
-
-//#region BUTTONS
-document.getElementById("addNewsletter").addEventListener("click", async () => {
+async function createNewsletter() {
     const version = getAPIMode();
     token = localStorage.getItem("id_token");
     try {
@@ -167,14 +116,52 @@ document.getElementById("addNewsletter").addEventListener("click", async () => {
 
         posthog.capture('newsletter_created', {
             newsletterId: newsletterId,
+            successful: true
         })
 
         window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
 
     } catch (error) {
         console.error(error);
+        posthog.capture('newsletter_created', {
+            newsletterId: newsletterId,
+            successful: false
+        })
         return null
     }
+}
+
+//#endregion
+
+//#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    let token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after page load.");
+        return null;
+    }
+    getAPIMode();
+    getNewsletters();
+});
+
+window.addEventListener("authReady", async (e) => {
+    const loggedIn = e.detail.valid;
+    if (loggedIn) {
+        token = localStorage.getItem("id_token");
+        if (!token) {
+            console.warn("No id_token found after auth ready.");
+            return null;
+        }
+        getAPIMode();
+        getNewsletters();
+    }
+});
+
+//#endregion
+
+//#region BUTTONS
+document.getElementById("addNewsletter").addEventListener("click", async () => {
+    await createNewsletter();
 });
 
 //#endregion

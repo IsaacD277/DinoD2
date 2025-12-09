@@ -16,29 +16,9 @@ const newsletterId = getNewsletterId();
 //#endregion
 
 //#region FUNCTIONS
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    return version;
-}
-
 function getNewsletterId() {
   const params = new URLSearchParams(window.location.search);
   return params.get('newsletterId');
-}
-
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        posthog.capture('authorization_retried');
-
-        window.dispatchEvent(retryAuth);
-    };
 }
 
 function getStats() {
@@ -156,15 +136,16 @@ async function getUploadURL() {
 }
 
 async function uploadImage(event) {
-    try {
-        const image = event.attachment.file;
-        if (!image) {
-            throw new Error("There is no image to upload");
-        }
+    const image = event.attachment.file;
+    if (!image) {
+        return;
+    }
 
+    try {
         responseObject = await getUploadURL();
 
         console.log("Uploading to: " + responseObject.url + responseObject.fields.key);
+        toastMessage("Uploading image...", true);
 
         const formdata = new FormData();
 
@@ -197,6 +178,7 @@ async function uploadImage(event) {
                 imageUrl: imageLink,
                 contentType: image.type
             });
+            toastMessage("Image uploaded.")
             return true;
         } else {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -245,11 +227,19 @@ async function handleFormSubmit(event) {
     }
 
     toastMessage("Newsletter saved", true);
+    posthog.capture('newsletter_saved', {
+      newsletterId: newsletterId,
+      successful: true
+    });
 
     // Update local variable
     Object.assign(newsletter, payload);
   } catch (err) {
     toastMessage("Failed to save newsletter", false);
+    posthog.capture('newsletter_saved', {
+      newsletterId: newsletterId,
+      successful: false
+    });
     console.error(err.message);
   }
 }
@@ -368,18 +358,33 @@ async function broadcastEmail(event) {
   }
 }
 
-function toastMessage(text, success = true) {
-  // Get the snackbar DIV
-  var x = document.getElementById("snackbar");
+async function deleteNewsletter() {
+  try {
+    const version = getAPIMode();
+    token = localStorage.getItem("id_token");
+    const response = await fetch(
+      `https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        }
+      }
+    );
 
-  x.textContent = text;
-  // Add the "show" class to DIV
-  x.className = success ? "showSuccess" : "showError";
+    if (response.status === 401) {
+      retry();
+    } if (!response.ok) {
+      throw new Error("Failed to delete newsletter");
+    }
 
-  // After 3 seconds, remove the show class from DIV
-  setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 3999);
-} 
-
+    return true;
+  } catch (err) {
+    console.error(err.message);
+    return false;
+  }
+}
 //#endregion
 
 //#region EVENT LISTENERS
@@ -426,6 +431,7 @@ window.onclick = function(event) {
 
 //#region BUTTONS
 document.getElementById('backBtn').onclick = () => {
+  posthog.capture('newslettersPage_visit');
   window.location.href = "/";
 };
 
@@ -480,4 +486,23 @@ document.getElementById("sendToEveryone").onclick = async (event) => {
     }
   }
 };
+
+document.getElementById("deleteNewsletter").onclick = async () => {
+  if (confirm("This action cannot be undone.\nAre you sure you want to delete?")) {
+    toastMessage("Deleting newsletter...", true);
+    const success = await deleteNewsletter();
+
+    posthog.capture('newsletter_deleted', {
+      newsletterId: newsletterId,
+      successful: success
+    });
+
+    if (success) {
+      toastMessage("Deleted newsletter", success);
+      window.location.href = '/';
+    } else {
+      toastMessage("Failed to delete newsletter", success);
+    }
+  }
+}
 //#endregion

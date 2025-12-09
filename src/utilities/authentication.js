@@ -128,9 +128,20 @@ async function getToken() {
             localStorage.removeItem("loginCode");
         }
 
+        posthog.capture('authtoken_retrieved', {
+            clientId: clientId,
+            redirectUri: redirectUri,
+            successful: true
+        });
+
         return true;
     } catch (e) {
         console.error(e);
+        posthog.capture('authtoken_retrieved', {
+            clientId: clientId,
+            redirectUri: redirectUri,
+            successful: false
+        });
         return false;
     }
 }
@@ -169,9 +180,17 @@ async function refreshToken(refreshToken) {
             localStorage.setItem("token_type", tokens.token_type);
         }
 
+        posthog.capture('authtoken_refreshed', {
+            clientId: clientId,
+            successful: true
+        });
         return true;
     } catch (e) {
         console.error(e);
+        posthog.capture('authtoken_refreshed', {
+            clientId: clientId,
+            successful: false
+        });
         return false;
     }
 }
@@ -189,6 +208,26 @@ function identifyUser() {
     } else {
         console.error("No token found");
     };
+}
+
+function retry() {
+    if (!authRetried) {
+        authRetried = true;
+        const retryAuth = new CustomEvent("retryAuth", {
+            detail: {
+                retried: true,
+            },
+        });
+
+        posthog.capture('authorization_retried');
+
+        window.dispatchEvent(retryAuth);
+    };
+}
+
+function getAPIMode() {
+    const version = localStorage.getItem("version");
+    return version;
 }
 
 //#endregion
@@ -233,18 +272,23 @@ document.getElementById("logoutBtn").onclick = () => {
 };
 
 document.getElementById("profileBtn").addEventListener("click", () => {
+    posthog.capture('profilePage_visit');
     window.location.href = `/profile/`;
 });
 
 document.getElementById("subscribersBtn").addEventListener("click", () => {
+    posthog.capture('subscribersPage_visit');
     window.location.href = `/subscribers/`;
 })
 
 document.getElementById("newslettersBtn").addEventListener("click", () => {
+    posthog.capture('newslettersPage_visit');
     window.location.href = '/';
 });
 
 document.getElementById("logo").addEventListener("click", () => {
+    posthog.capture('newslettersPage_visit');
+    posthog.capture('logoClick');
     window.location.href = '/';
 });
 

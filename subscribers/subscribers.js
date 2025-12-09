@@ -5,28 +5,6 @@ const form = document.getElementById("addaSubscriber");
 //#endregion
 
 //#region FUNCTIONS
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    if (!version) {
-        localStorage.setItem("version", "v0");
-        const version = localStorage.getItem("version");
-    }
-    return version;
-}
-
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        window.dispatchEvent(retryAuth);
-    };
-}
-
 function compare( a, b ) {
   if ( a.created < b.created ){
     return 1;
@@ -107,6 +85,9 @@ function renderSubscribers(subscribers) {
         tr.appendChild(statusTd);
 
         tr.addEventListener ("click", () => {
+            posthog.capture('subscriberEditorPage_visit', {
+                subscriberId: sub.id
+            });
             window.location.href = `/subscribers/subscriber/?subscriberId=${sub.id}`;
         })
 
@@ -124,36 +105,7 @@ function totalSubscribers(subscribers) {
     
 }
 
-//#endregion
-
-//#region EVENT LISTENERS
-window.addEventListener("DOMContentLoaded", async (e) => {
-    let token = localStorage.getItem("id_token");
-    if (!token) {
-        console.warn("No id_token found after auth ready.");
-        return null;
-    }
-    getAPIMode();
-    getSubscribers();
-})
-
-window.addEventListener("authReady", async (e) => {
-    const loggedIn = e.detail.valid;
-    if (loggedIn) {
-        let token = localStorage.getItem("id_token");
-        if (!token) {
-            console.warn("No id_token found after auth ready.");
-            return null;
-        }
-        getAPIMode();
-        getSubscribers();
-    }
-});
-//#endregion
-
-//#region BUTTONS
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+async function createSubscriber() {
     try {
         const emailAddress = document.getElementById('emailAddress').value
         const firstName = document.getElementById('firstName').value
@@ -183,18 +135,59 @@ form.addEventListener("submit", async (e) => {
         }
 
         data = await response.json();
+        toastMessage("Created new subscriber", true);
+
+        posthog.capture('subscriber_created', {
+            subscriberId: data.userId,
+            successful: true
+        });
+
         document.getElementById('emailAddress').value = "";
         document.getElementById('firstName').value = "";
         getSubscribers();
-
+        return;
     } catch (error) {
         console.error(error);
-        return null
+        toastMessage("Failed to create new subscriber", false);
+
+        posthog.capture('subscriber_created', {
+            successful: false
+        });
+        return;
+    }
+}
+
+//#endregion
+
+//#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    let token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after page load.");
+        return null;
+    }
+    getAPIMode();
+    getSubscribers();
+})
+
+window.addEventListener("authReady", async (e) => {
+    const loggedIn = e.detail.valid;
+    if (loggedIn) {
+        let token = localStorage.getItem("id_token");
+        if (!token) {
+            console.warn("No id_token found after auth ready.");
+            return null;
+        }
+        getAPIMode();
+        getSubscribers();
     }
 });
+//#endregion
 
-document.getElementById("profileBtn").addEventListener("click", () => {
-    window.location.href = `/profile/`;
+//#region BUTTONS
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await createSubscriber();
 });
 
 //#endregion
