@@ -1,4 +1,8 @@
 function toastMessage(text, success = true) {
+  posthog.capture('toastmessage_shown', {
+    text: text,
+    successful: success
+  });
   // Get the snackbar DIV
   var x = document.getElementById("snackbar");
 

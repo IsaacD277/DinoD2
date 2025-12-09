@@ -128,9 +128,20 @@ async function getToken() {
             localStorage.removeItem("loginCode");
         }
 
+        posthog.capture('authtoken_retrieved', {
+            clientId: clientId,
+            redirectUri: redirectUri,
+            successful: true
+        });
+
         return true;
     } catch (e) {
         console.error(e);
+        posthog.capture('authtoken_retrieved', {
+            clientId: clientId,
+            redirectUri: redirectUri,
+            successful: false
+        });
         return false;
     }
 }
@@ -169,9 +180,17 @@ async function refreshToken(refreshToken) {
             localStorage.setItem("token_type", tokens.token_type);
         }
 
+        posthog.capture('authtoken_refreshed', {
+            clientId: clientId,
+            successful: true
+        });
         return true;
     } catch (e) {
         console.error(e);
+        posthog.capture('authtoken_refreshed', {
+            clientId: clientId,
+            successful: false
+        });
         return false;
     }
 }

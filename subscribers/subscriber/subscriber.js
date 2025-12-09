@@ -90,12 +90,23 @@ async function updateSubscriber() {
             }
 
             toastMessage("Successfully saved changes", true);
+            
+            posthog.capture('subscriber_updated', {
+                subscriberId: subscriberId,
+                toCondition: condition,
+                successful: true
+            });
 
             return;
         }
     } catch (err) {
         console.error(err);
         toastMessage("Failed to save changes", false);
+        posthog.capture('subscriber_updated', {
+            subscriberId: subscriberId,
+            toCondition: condition,
+            successful: false
+        });
         return;
     }
 }

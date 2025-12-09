@@ -17,6 +17,9 @@ function setAPIMode() {
     const apiCheckbox = document.getElementById("apiSelector");
     const apiMode = apiCheckbox.checked ? 'development' : 'v0';
     localStorage.setItem("version", apiMode);
+    posthog.capture('apimode_changed', {
+        changedTo: apiMode
+    });
 }
 
 async function getProfileDetails() {
@@ -156,10 +159,17 @@ async function saveProfileDetails() {
         } if (!response.ok) {
             throw new Error("Failed to save profile");
         }
+
+        posthog.capture('profile_saved', {
+            successful: true
+        });
         
         return true;
     } catch (err) {
         console.error(err);
+        posthog.capture('profile_saved', {
+            successful: false
+        });
         return false;
     }
 }

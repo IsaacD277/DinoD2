@@ -134,6 +134,11 @@ async function createSubscriber() {
         data = await response.json();
         toastMessage("Created new subscriber", true);
 
+        posthog.capture('subscriber_created', {
+            subscriberId: data.userId,
+            successful: true
+        });
+
         document.getElementById('emailAddress').value = "";
         document.getElementById('firstName').value = "";
         getSubscribers();
@@ -141,6 +146,10 @@ async function createSubscriber() {
     } catch (error) {
         console.error(error);
         toastMessage("Failed to create new subscriber", false);
+
+        posthog.capture('subscriber_created', {
+            successful: false
+        });
         return;
     }
 }

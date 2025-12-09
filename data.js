@@ -113,12 +113,17 @@ async function createNewsletter() {
 
         posthog.capture('newsletter_created', {
             newsletterId: newsletterId,
+            successful: true
         })
 
         window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
 
     } catch (error) {
         console.error(error);
+        posthog.capture('newsletter_created', {
+            newsletterId: newsletterId,
+            successful: false
+        })
         return null
     }
 }
