@@ -12,28 +12,6 @@ function getSubscriberId() {
   return params.get('subscriberId');
 }
 
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    if (!version) {
-        localStorage.setItem("version", "v0");
-        const version = localStorage.getItem("version");
-    }
-    return version;
-}
-
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        window.dispatchEvent(retryAuth);
-    };
-}
-
 async function getSubscriber() {
     const version = getAPIMode();
     const subscriberId = getSubscriberId();

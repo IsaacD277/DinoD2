@@ -13,24 +13,6 @@ if (apiCheckbox) {
 //#endregion
 
 //#region FUNCTIONS
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        window.dispatchEvent(retryAuth);
-    };
-}
-
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    return version;
-}
-
 function setAPIMode() {
     const apiCheckbox = document.getElementById("apiSelector");
     const apiMode = apiCheckbox.checked ? 'development' : 'v0';

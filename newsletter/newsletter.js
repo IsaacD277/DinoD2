@@ -16,29 +16,9 @@ const newsletterId = getNewsletterId();
 //#endregion
 
 //#region FUNCTIONS
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    return version;
-}
-
 function getNewsletterId() {
   const params = new URLSearchParams(window.location.search);
   return params.get('newsletterId');
-}
-
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        posthog.capture('authorization_retried');
-
-        window.dispatchEvent(retryAuth);
-    };
 }
 
 function getStats() {

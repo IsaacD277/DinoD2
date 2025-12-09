@@ -4,28 +4,6 @@ let authRetried = false;
 //#endregion
 
 //#region FUNCTIONS
-function getAPIMode() {
-    const version = localStorage.getItem("version");
-    if (!version) {
-        localStorage.setItem("version", "v0"); // "v0"
-        const version = localStorage.getItem("version");
-    }
-    return version;
-}
-
-function retry() {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-            },
-        });
-
-        window.dispatchEvent(retryAuth);
-    };
-}
-
 function compare( a, b ) {
   if ( a.sendDate < b.sendDate ){
     return 1;

@@ -191,6 +191,26 @@ function identifyUser() {
     };
 }
 
+function retry() {
+    if (!authRetried) {
+        authRetried = true;
+        const retryAuth = new CustomEvent("retryAuth", {
+            detail: {
+                retried: true,
+            },
+        });
+
+        posthog.capture('authorization_retried');
+
+        window.dispatchEvent(retryAuth);
+    };
+}
+
+function getAPIMode() {
+    const version = localStorage.getItem("version");
+    return version;
+}
+
 //#endregion
 
 //#region EVENT LISTENERS
