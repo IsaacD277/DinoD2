@@ -136,12 +136,12 @@ async function getUploadURL() {
 }
 
 async function uploadImage(event) {
-    try {
-        const image = event.attachment.file;
-        if (!image) {
-            return;
-        }
+    const image = event.attachment.file;
+    if (!image) {
+        return;
+    }
 
+    try {
         responseObject = await getUploadURL();
 
         console.log("Uploading to: " + responseObject.url + responseObject.fields.key);
