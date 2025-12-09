@@ -7,5 +7,5 @@ function toastMessage(text, success = true) {
   x.className = success ? "showSuccess" : "showError";
 
   // After 3 seconds, remove the show class from DIV
-  setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 3999);
+  setTimeout(function(){ x.className = x.className.replace(success ? "showSuccess" : "showError", ""); }, 3900);
 }
