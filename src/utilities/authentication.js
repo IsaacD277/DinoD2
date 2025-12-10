@@ -226,7 +226,7 @@ function retry() {
 }
 
 function getAPIMode() {
-    const version = localStorage.getItem("version");
+    const version = localStorage.getItem("version") || "v0";
     return version;
 }
 
