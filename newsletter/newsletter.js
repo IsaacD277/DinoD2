@@ -6,6 +6,10 @@ let newsletter = null;
 let authRetried = false;
 let form;
 var modal = document.getElementById("sendDateModal");
+var preview = document.getElementById("previewContainer");
+let livePreview = false;
+let template = null;
+const targetWindow = document.querySelector("iframe").contentWindow;
 
 // Allows for production and development switching
 const version = getAPIMode();
@@ -385,6 +389,44 @@ async function deleteNewsletter() {
     return false;
   }
 }
+
+async function getTemplate() {
+    const response = await fetch("https://s3.us-east-1.amazonaws.com/app.dinod2.com/newsletterTemplateOriginal.html");
+
+    const body = response.text();
+    body.then(res => {
+        template = res;
+        return res;
+    });
+
+    template = body;
+
+    return;
+}
+
+function safeSubstitute(templateString, data) {
+  // Use a regular expression to find all ${placeholder} patterns
+  return templateString.replace(/\${(.*?)}/g, (match, key) => {
+    // Check if the key exists in the data object
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      return data[key];
+    }
+    // If the key is missing, return the original placeholder intact (safe substitution)
+    return match;
+  });
+}
+
+async function updatePreview(templateString) {
+    const content = document.getElementById("content").value;
+    const data = {
+        tracking_url: "",
+        content: content,
+        businessAddress: "8561 Gander Creek Dr"
+    };
+    const previewData = safeSubstitute(templateString, data);
+    targetWindow.postMessage(previewData);
+}
+
 //#endregion
 
 //#region EVENT LISTENERS
@@ -403,6 +445,7 @@ window.addEventListener("authReady", async (e) => {
         form = document.getElementById('newsletterForm');
         newsletter = await loadNewsletterData(newsletterId);
         getStats();
+        getTemplate();
 
         if (form) {
           form.addEventListener("submit", handleFormSubmit);
@@ -418,7 +461,13 @@ window.addEventListener("authReady", async (e) => {
 // Upload image when added to Trix
 addEventListener("trix-attachment-add", (event) => {
   uploadImage(event);
-})
+});
+
+addEventListener("trix-change", () => {
+  if (livePreview) {
+    updatePreview(template);
+  }
+});
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
@@ -462,6 +511,13 @@ document.getElementById("previewNewsletter").onclick = async (event) => {
     toastMessage("Failed to send preview", false);
   }
 };
+
+document.getElementById("livePreviewNewsletter").onclick = async (event) => {
+  livePreview = livePreview ? false : true;
+  livePreview ? getTemplate() : null;
+  preview.style.display = livePreview ? "flex" : "none";
+  updatePreview(template);
+}
 
 document.getElementById("sendToEveryone").onclick = async (event) => {
   if (newsletter.stage !== "Draft") {

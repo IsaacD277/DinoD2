@@ -45,6 +45,7 @@
         <div id="myDropdown" class="dropdown-content">
           <a id="changeSend">Change Send Date</a>
           <a id="previewNewsletter">Preview Newsletter</a>
+          <a id="livePreviewNewsletter">Live Preview</a>
           <a id="sendToEveryone">Send to All Subscribers</a>
           <a id="deleteNewsletter" class="deleteNewsletter">Delete</a>
         </div>
@@ -79,6 +80,10 @@
     </div>
 
     <div id="snackbar"></div>
+  </div>
+
+  <div id="previewContainer" class="container">
+    <iframe id="livePreview" name="preview" style="border:2px solid red; border-radius: 20px; width: 800px; height: 800px;" title="Email Preview" src="livePreview.html"></iframe>
   </div>
 
   <div id="sendDateModal" class="modal">

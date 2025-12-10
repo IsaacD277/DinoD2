@@ -10,6 +10,7 @@ body {
     min-height: 100vh;
     padding: 80px 20px 40px 20px;
     color: #2D3142;
+    display: flex;
 }
 .container {
     max-width: 900px;
@@ -476,6 +477,10 @@ button[type="button"]:hover {
 
 #deleteNewsletter {
     color: red;
+}
+
+#previewContainer {
+    display: none;
 }
 
 /* Animations to fade the snackbar in and out */
