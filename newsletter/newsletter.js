@@ -391,7 +391,7 @@ async function deleteNewsletter() {
 }
 
 async function getTemplate() {
-    const response = await fetch("https://s3.us-east-1.amazonaws.com/app.dinod2.com/newsletterTemplateOriginal.html");
+    const response = await fetch("https://dinod2templates.s3.us-east-1.amazonaws.com/newsletterTemplateOriginal.html");
 
     const body = response.text();
     body.then(res => {
