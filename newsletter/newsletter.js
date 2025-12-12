@@ -233,7 +233,9 @@ async function handleFormSubmit(event) {
     toastMessage("Newsletter saved", true);
     posthog.capture('newsletter_saved', {
       newsletterId: newsletterId,
-      successful: true
+      successful: true,
+      payload: payload,
+      errorMessage: null
     });
 
     // Update local variable
@@ -242,7 +244,9 @@ async function handleFormSubmit(event) {
     toastMessage("Failed to save newsletter", false);
     posthog.capture('newsletter_saved', {
       newsletterId: newsletterId,
-      successful: false
+      successful: false,
+      payload: payload,
+      errorMessage: err
     });
     console.error(err.message);
   }
