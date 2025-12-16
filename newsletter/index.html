@@ -43,7 +43,8 @@
       <div class="dropdown">
         <button id="newsletterOptions" class="dropbtn">More</button>
         <div id="myDropdown" class="dropdown-content">
-          <a id="changeSend">Change Send Date</a>
+          <a id="changeSettings">Change Settings</a>
+          <!-- <a id="changeTemplate">Change Template</a> -->
           <a id="previewNewsletter">Preview Newsletter</a>
           <a id="livePreviewNewsletter">Live Preview</a>
           <a id="sendToEveryone">Send to All Subscribers</a>
@@ -75,6 +76,12 @@
       <button type="submit">Save Newsletter</button>
     </form>
 
+    <form id="templateSpecific">
+      <input type="file" id="myFile" name="filename">
+
+      <button type="submit">Save Background Image</button>
+    </form>
+
     <div class="action-buttons">
       <button id="backBtn">← Back to Newsletters</button>
     </div>
@@ -93,12 +100,20 @@
         Send Date:
         <input type="date" id="sendDate" name="sendDate" class="third-width">
       </label>
+
+      <label>
+        Template:
+        <select id="newsletterTemplateDropdown">
+          <option value="">Loading...</option>
+        </select>
+      </label>
       <button id="submitDate" class="modal-button" type="submit">Submit</button>
     </div>
   </div>
 
   <script src="/src/utilities/authentication.js"></script>
   <script src="/src/utilities/popups.js"></script>
+  <script src="/src/utilities/api.js"></script>
   <script src="newsletter.js"></script>
 </body>
 </html>

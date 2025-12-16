@@ -60,7 +60,7 @@ function setProfileDetails(profile) {
         day: "numeric"
     };
     populatePreviewEmailDropdown(profile);
-    populateNewlsetterTemplateDropdown(profile);
+    populateNewsletterTemplateDropdown(profile);
     // Editable fields
     document.getElementById('newsletterName').value = profile.newsletterName || "";
     document.getElementById('businessAddress').value = profile.businessAddress || "";
@@ -125,7 +125,7 @@ async function populatePreviewEmailDropdown(profile) {
     }
 }
 
-async function populateNewlsetterTemplateDropdown(profile) {
+async function populateNewsletterTemplateDropdown(profile) {
     console.log(profile);
     const templateDropdown = document.getElementById("newsletterTemplateDropdown");
     const version = getAPIMode();
