@@ -6,11 +6,11 @@ let newsletter = null;
 let authRetried = false;
 let form;
 let backgroundImageform;
-var modal = document.getElementById("sendDateModal");
+var modal = document.getElementById("newsletterSettingsModal");
 var preview = document.getElementById("previewContainer");
 let livePreview = false;
 let template = null;
-const targetWindow = document.querySelector("iframe").contentWindow;
+const previewWindow = document.querySelector("iframe").contentWindow;
 
 // Allows for production and development switching
 const version = getAPIMode();
@@ -88,6 +88,7 @@ function setNewsletterDetails(newsletter) {
   newsletterData = newsletter.content || "";
   document.getElementById('sendDate').value = newsletter.sendDate || "";
   document.getElementById('pageTitle').textContent = "Edit Newsletter";
+  document.getElementById('backgroundColor').value = newsletter.backgroundColor.substring(0,7);
 
   if (trixInitialized) {
     loadTrixContent(newsletterData);
@@ -203,7 +204,7 @@ async function uploadImage(event = null, image = null) {
     }
 }
 
-async function handleFormSubmit(event) {
+async function saveNewsletter(event) {
   event.preventDefault();
   const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
 
@@ -211,7 +212,7 @@ async function handleFormSubmit(event) {
   preview = document.getElementById('preview').value || "";
   content = document.getElementById('content').value || "";
   sendDate = document.getElementById('sendDate').value || "";
-  template = selectedTemplate.id || "";
+  template = selectedTemplate.id || "1fc8d430-4f93-478c-8ecc-c47807f1ab07";
 
   const payload = {
     subject: subject,
@@ -264,14 +265,16 @@ async function handleFormSubmit(event) {
   }
 }
 
-async function updateSendDate() {
+async function updateSettings() {
+  sendDate = document.getElementById('sendDate').value || "";
   const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
   template = selectedTemplate.id || "";
-  sendDate = document.getElementById('sendDate').value || "";
+  color = `${document.getElementById('backgroundColor').value}d7` || "#240b0bd7";
 
   const payload = {
     sendDate: sendDate,
-    template: template
+    template: template,
+    backgroundColor: color
   };
 
   try {
@@ -309,9 +312,8 @@ async function updateSendDate() {
 
 async function updateBackgroundImage(event) {
   event.preventDefault();
-  console.log("Running update Background Image");
-  let image = document.getElementById("myFile").files[0];
-  console.log(image);
+
+  let image = document.getElementById("backgroundImage").files[0];
 
   const link = await uploadImage(null, image);
   console.log(link);
@@ -351,7 +353,7 @@ async function updateBackgroundImage(event) {
 }
 
 async function sendPreviewEmail(event) {
-  await handleFormSubmit(event);
+  await saveNewsletter(event);
   token = localStorage.getItem("id_token");
 
   try {
@@ -383,7 +385,7 @@ async function sendPreviewEmail(event) {
 }
 
 async function broadcastEmail(event) {
-  await handleFormSubmit(event);
+  await saveNewsletter(event);
 
   const payload = {
     newsletterId: newsletterId
@@ -511,7 +513,7 @@ async function updatePreview(templateString) {
         backgroundImageUrl: newsletter.backgroundImageUrl
     };
     const previewData = safeSubstitute(templateString, data);
-    targetWindow.postMessage(previewData);
+    previewWindow.postMessage(previewData);
 }
 
 async function populateNewsletterTemplateDropdown() {
@@ -583,13 +585,7 @@ window.addEventListener("authReady", async (e) => {
         populateNewsletterTemplateDropdown();
 
         if (form) {
-          form.addEventListener("submit", handleFormSubmit);
-        }
-
-        backgroundImageform = document.getElementById('templateSpecific');
-        console.log(backgroundImageform);
-        if (backgroundImageform) {
-          backgroundImageform.addEventListener("submit", updateBackgroundImage);
+          form.addEventListener("submit", saveNewsletter);
         }
 
         const existingEditor = document.querySelector("trix-editor");
@@ -617,6 +613,10 @@ window.onclick = function(event) {
   }
 } 
 
+document.getElementById("backgroundImage").onchange = (event) => {
+  updateBackgroundImage(event);
+}
+
 //#endregion
 
 //#region BUTTONS
@@ -629,8 +629,8 @@ document.getElementById("changeSettings").onclick = () => {
   modal.style.display = "block";
 };
 
-document.getElementById("submitDate").onclick = async => {
-  updateSendDate();
+document.getElementById("submitSettings").onclick = async => {
+  updateSettings();
   modal.style.display = "none";
 }
 

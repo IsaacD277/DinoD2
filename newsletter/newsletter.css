@@ -481,6 +481,7 @@ button[type="button"]:hover {
 
 #previewContainer {
     display: none;
+    width: 100%;
 }
 
 /* Animations to fade the snackbar in and out */

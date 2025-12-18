@@ -76,12 +76,6 @@
       <button type="submit">Save Newsletter</button>
     </form>
 
-    <form id="templateSpecific">
-      <input type="file" id="myFile" name="filename">
-
-      <button type="submit">Save Background Image</button>
-    </form>
-
     <div class="action-buttons">
       <button id="backBtn">← Back to Newsletters</button>
     </div>
@@ -90,10 +84,10 @@
   </div>
 
   <div id="previewContainer" class="container">
-    <iframe id="livePreview" name="preview" style="border:2px solid red; border-radius: 20px; width: 800px; height: 800px;" title="Email Preview" src="livePreview.html"></iframe>
+    <iframe id="livePreview" name="preview" style="border:2px solid red; border-radius: 20px; width: 100%; height: 800px;" title="Email Preview" src="livePreview.html"></iframe>
   </div>
 
-  <div id="sendDateModal" class="modal">
+  <div id="newsletterSettingsModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
       <label>
@@ -107,7 +101,19 @@
           <option value="">Loading...</option>
         </select>
       </label>
-      <button id="submitDate" class="modal-button" type="submit">Submit</button>
+
+      <div id="forKesla">
+        <label>
+          Background Image:
+          <input type="file" id="backgroundImage" name="filename">
+        </label>
+
+        <label>
+          Box Background Color: <br>
+          <input type="color" id="backgroundColor" name="backgroundColor" value="#240b0b" alpha>
+        </label>
+      </div>
+      <button id="submitSettings" class="modal-button" type="submit">Submit</button>
     </div>
   </div>
 
