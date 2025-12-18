@@ -34,7 +34,7 @@ async function getNewsletters() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(getNewsletters.name);
         } if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         };
@@ -106,7 +106,7 @@ async function createNewsletter() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(createNewsletter.name);
         } if (!response.ok) {
             throw new Error(`HTTP error! Stage: ${response.stage}`);
         };
@@ -155,6 +155,11 @@ window.addEventListener("authReady", async (e) => {
         getAPIMode();
         getNewsletters();
     }
+});
+
+window.addEventListener("authIsRetried", async (e) => {
+    const theName = e.detail.name;
+    window[theName](e);
 });
 
 //#endregion

@@ -35,7 +35,7 @@ async function getProfileDetails() {
         });
 
         if (response.status === 401) {
-        retry();
+        retry(getProfileDetails.name);
         } if (!response.ok) {
         throw new Error(`Failed to load newsletter: ${response.status}`);
         }
@@ -92,7 +92,7 @@ async function populatePreviewEmailDropdown(profile) {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(populatePreviewEmailDropdown.name);
         } if (!response.ok) {
             const message = "Failed to load subscriber list"
             throw new Error(message);
@@ -140,7 +140,7 @@ async function populateNewsletterTemplateDropdown(profile) {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(populateNewsletterTemplateDropdown.name);
         } if (!response.ok) {
             const message = "Failed to load newsletter template list"
             throw new Error(message);
@@ -205,7 +205,7 @@ async function saveProfileDetails() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(saveProfileDetails.name);
         } if (!response.ok) {
             throw new Error("Failed to save profile");
         }
@@ -237,6 +237,11 @@ window.addEventListener("authReady", async (e) => {
         
         getProfileDetails();
     }
+});
+
+window.addEventListener("authIsRetried", async (e) => {
+    const theName = e.detail.name;
+    window[theName](e);
 });
 
 //#endregion

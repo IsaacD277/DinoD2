@@ -28,7 +28,7 @@ async function getSubscribers() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(getSubscribers.name);
         } if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         } else {
@@ -129,7 +129,7 @@ async function createSubscriber() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(createSubscriber.name);
         } if (!response.ok) {
             throw new Error(`HTTP error! Stage: ${response.stage}`);
         }
@@ -181,6 +181,11 @@ window.addEventListener("authReady", async (e) => {
         getAPIMode();
         getSubscribers();
     }
+});
+
+window.addEventListener("authIsRetried", async (e) => {
+    const theName = e.detail.name;
+    window[theName](e);
 });
 //#endregion
 
