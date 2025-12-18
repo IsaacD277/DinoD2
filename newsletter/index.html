@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/src/style/topbar.css" />
   <link rel="stylesheet" href="/src/style/popups.css" />
   <link rel="stylesheet" href="newsletter.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init hi $r kr ui wr Er capture Ri calculateEventProperties Ir register register_once register_for_session unregister unregister_for_session Fr getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Cr Tr createPersonProfile Or yr Mr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Pr debug L Rr getPageViewId captureTraceFeedback captureTraceMetric gr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
     posthog.init('phc_a7FhYZ7VLET8VGGPBHzvhzbo1rmG3Q9lX8KrV2qal4F', {
@@ -37,55 +38,60 @@
     </div>
   </header>
   
-  <div class="container">
-    <div class="heading">
-      <h1 id="pageTitle">Newsletter Editor</h1>
-      <div class="dropdown">
-        <button id="newsletterOptions" class="dropbtn">More</button>
-        <div id="myDropdown" class="dropdown-content">
-          <a id="changeSettings">Change Settings</a>
-          <!-- <a id="changeTemplate">Change Template</a> -->
-          <a id="previewNewsletter">Preview Newsletter</a>
-          <a id="livePreviewNewsletter">Live Preview</a>
-          <a id="sendToEveryone">Send to All Subscribers</a>
-          <a id="deleteNewsletter" class="deleteNewsletter">Delete</a>
+      <div class="split">
+        <div id="split-0">
+            <div class="container">
+                <div class="heading">
+                  <h1 id="pageTitle">Newsletter Editor</h1>
+                  <div class="dropdown">
+                      <button id="newsletterOptions" class="dropbtn">More</button>
+                      <div id="myDropdown" class="dropdown-content">
+                        <a id="changeSettings">Change Settings</a>
+                        <a id="previewNewsletter">Preview Newsletter</a>
+                        <a id="livePreviewNewsletter">Show Live Preview</a>
+                        <a id="sendToOne">Send to Individual</a>
+                        <a id="sendToEveryone">Send to All Subscribers</a>
+                        <a id="deleteNewsletter" class="deleteNewsletter">Delete</a>
+                      </div>
+                  </div>
+                </div>
+
+                <div id="newsletterStats" class="stats">
+                  <p>Sends: <span id="sendCount">0</span></p>
+                  <p>Open Rate: <span id="openRate">0%</span></p>
+                </div>
+
+                <form id="newsletterForm">
+                  <label id="formSubject">
+                      Subject:
+                      <input type="text" id="subject" name="subject" placeholder="Enter newsletter subject" required>
+                  </label>
+
+                  <label id="formPreview">
+                      Preview Text:
+                      <input type="text" id="preview" name="preview" placeholder="Short preview text that appears in email clients">
+                  </label>
+
+                  <label for="content">Newsletter Content:</label>
+                  <input id="content" type="hidden" name="content">
+                  <trix-editor input="content"></trix-editor>
+
+                  <button type="submit">Save Newsletter</button>
+                </form>
+
+                <div class="action-buttons">
+                <button id="backBtn">← Back to Newsletters</button>
+                </div>
+
+                <div id="snackbar"></div>
+            </div>
         </div>
-      </div>
+        <div id="split-1">
+            <div id="previewContainer">
+                <iframe id="livePreview" name="preview" style="border:2px solid red; border-radius: 20px; width: 100%;" title="Email Preview" src="livePreview.html"></iframe>
+            </div>
+        </div>
     </div>
-
-    <div class="stats">
-      <p>Sends: <span id="sendCount">0</span></p>
-      <p>Open Rate: <span id="openRate">0%</span></p>
-    </div>
-
-    <form id="newsletterForm">
-      <label>
-        Subject:
-        <input type="text" id="subject" name="subject" placeholder="Enter newsletter subject" required>
-      </label>
-
-      <label>
-        Preview Text:
-        <input type="text" id="preview" name="preview" placeholder="Short preview text that appears in email clients">
-      </label>
-
-      <label for="content">Newsletter Content:</label>
-      <input id="content" type="hidden" name="content">
-      <trix-editor input="content"></trix-editor>
-
-      <button type="submit">Save Newsletter</button>
-    </form>
-
-    <div class="action-buttons">
-      <button id="backBtn">← Back to Newsletters</button>
-    </div>
-
-    <div id="snackbar"></div>
-  </div>
-
-  <div id="previewContainer" class="container">
-    <iframe id="livePreview" name="preview" style="border:2px solid red; border-radius: 20px; width: 100%; height: 800px;" title="Email Preview" src="livePreview.html"></iframe>
-  </div>
 
   <div id="newsletterSettingsModal" class="modal">
     <div class="modal-content">
@@ -114,6 +120,20 @@
         </label>
       </div>
       <button id="submitSettings" class="modal-button" type="submit">Submit</button>
+    </div>
+  </div>
+
+  <div id="singleSendModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <label>
+        Choose Subscriber:
+        <select id="subscriberListDropdown">
+          <option value="">Loading...</option>
+        </select>
+      </label>
+
+      <button id="submitSend" class="modal-button" type="submit">Send</button>
     </div>
   </div>
 
