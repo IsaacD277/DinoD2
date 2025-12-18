@@ -26,7 +26,7 @@ async function getSubscriber() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(getSubscriber.name);
         } if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         } else {
@@ -62,7 +62,7 @@ async function updateSubscriber() {
             });
 
             if (response.status === 401) {
-                retry();
+                retry(updateSubscriber.name);
             } if (!response.ok) {
                 throw new Error(`Failed to delete subscriber`);
             }
@@ -84,7 +84,7 @@ async function updateSubscriber() {
             });
 
             if (response.status === 401) {
-                retry();
+                retry(updateSubscriber.name);
             } if (!response.ok) {
                 throw new Error("Failed to save subscriber");
             }
@@ -124,6 +124,11 @@ window.addEventListener("authReady", async (e) => {
         }
         await getSubscriber();
     }
+});
+
+window.addEventListener("authIsRetried", async (e) => {
+    const theName = e.detail.name;
+    window[theName](e);
 });
 
 //#endregion

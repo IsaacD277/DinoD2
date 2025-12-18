@@ -35,7 +35,7 @@ async function getProfileDetails() {
         });
 
         if (response.status === 401) {
-        retry();
+        retry(getProfileDetails.name);
         } if (!response.ok) {
         throw new Error(`Failed to load newsletter: ${response.status}`);
         }
@@ -60,6 +60,7 @@ function setProfileDetails(profile) {
         day: "numeric"
     };
     populatePreviewEmailDropdown(profile);
+    populateNewsletterTemplateDropdown(profile);
     // Editable fields
     document.getElementById('newsletterName').value = profile.newsletterName || "";
     document.getElementById('businessAddress').value = profile.businessAddress || "";
@@ -91,14 +92,14 @@ async function populatePreviewEmailDropdown(profile) {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(populatePreviewEmailDropdown.name);
         } if (!response.ok) {
             const message = "Failed to load subscriber list"
             throw new Error(message);
         }
 
         const subscribers = await response.json();
-        previewEmailDropdown.innerHTML = "";
+        userDropdown.innerHTML = "";
         let foundActive = false;
         let previewEmailValue = null;
         subscribers.forEach(sub => {
@@ -116,21 +117,70 @@ async function populatePreviewEmailDropdown(profile) {
         userDropdown.value = previewEmailValue;
 
         if (!foundActive) {
-            previewEmailDropdown.innerHTML = '<option value="">No active users</option>';
+            userDropdown.innerHTML = '<option value="">No active users</option>';
         }
     } catch (e) {
         console.error(e);
-        previewEmailDropdown.innerHTML = '<option value="">Error loading users</option>';
+        userDropdown.innerHTML = '<option value="">Error loading users</option>';
     }
+}
 
+async function populateNewsletterTemplateDropdown(profile) {
+    console.log(profile);
+    const templateDropdown = document.getElementById("newsletterTemplateDropdown");
+    const version = getAPIMode();
+    token = localStorage.getItem("id_token");
+    try {
+        const response = await fetch(`https://api.dinod2.com/${version}/templates`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token
+            }
+        });
 
+        if (response.status === 401) {
+            retry(populateNewsletterTemplateDropdown.name);
+        } if (!response.ok) {
+            const message = "Failed to load newsletter template list"
+            throw new Error(message);
+        }
+
+        const templates = await response.json();
+        console.log(templates);
+        templateDropdown.innerHTML = "";
+        let foundActive = false;
+        let templateValue = null;
+        templates.forEach(template => {
+            if (template.stage == "Active") {
+                foundActive = true;
+                const opt = document.createElement("option");
+                opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
+                opt.textContent = template.friendlyName;
+                if (profile.preferredTemplate === template.id) {
+                    templateValue = opt.value;
+                }
+                templateDropdown.appendChild(opt);
+            }
+        });
+        templateDropdown.value = templateValue;
+
+        if (!foundActive) {
+            templateDropdown.innerHTML = '<option value="">No active templates</option>';
+        }
+    } catch (e) {
+        console.error(e);
+        templateDropdown.innerHTML = '<option value="">Error loading templates</option>';
+    }
 }
 
 async function saveProfileDetails() {
     const selectedPreviewEmail = JSON.parse(document.getElementById('previewEmailDropdown').value);
+    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
 
     const payload = {
         newsletterName: document.getElementById('newsletterName').value || "",
+        preferredTemplate: selectedTemplate.id || "",
         businessAddress: document.getElementById('businessAddress').value || "",
         domain: document.getElementById('domain').value || "",
         owner: document.getElementById('owner').value || "",
@@ -155,7 +205,7 @@ async function saveProfileDetails() {
         });
 
         if (response.status === 401) {
-            retry();
+            retry(saveProfileDetails.name);
         } if (!response.ok) {
             throw new Error("Failed to save profile");
         }
@@ -187,6 +237,11 @@ window.addEventListener("authReady", async (e) => {
         
         getProfileDetails();
     }
+});
+
+window.addEventListener("authIsRetried", async (e) => {
+    const theName = e.detail.name;
+    window[theName](e);
 });
 
 //#endregion

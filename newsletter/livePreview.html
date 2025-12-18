@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <script>
+            window.addEventListener("message", (event) => {
+                document.querySelector("html").innerHTML = event.data;
+            });
+        </script>
+    </body>
+</html>

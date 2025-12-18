@@ -11,6 +11,7 @@ const authNotReady = new CustomEvent("authReady", {
         valid: false,
     },
 });
+let authIsRetried;
 
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const isDev = window.location.hostname === "dev.dinod2.com";
@@ -39,6 +40,12 @@ function parseUrl() {
 }
 
 function setAuthStatus(status = false) {
+    console.log(authRetried);
+    if (authRetried) {
+        console.log(authIsRetried);
+        window.dispatchEvent(authIsRetried);
+        return;
+    }
     if (!authResolved) {
         authResolved = true;
         if (status) {
@@ -210,12 +217,13 @@ function identifyUser() {
     };
 }
 
-function retry() {
+function retry(theName = null) {
     if (!authRetried) {
         authRetried = true;
         const retryAuth = new CustomEvent("retryAuth", {
             detail: {
                 retried: true,
+                name: theName,
             },
         });
 
@@ -236,6 +244,7 @@ function getAPIMode() {
 
 // Run on page load
 parseUrl();
+getAPIMode();
 
 // Requires a small delay or else receives 400 "invalid_grant" errors
 setTimeout(() => {
@@ -245,6 +254,16 @@ setTimeout(() => {
 window.addEventListener("retryAuth", async (e) => {
     console.log("Retrying Auth");
     authResolved = false;
+    console.log(e);
+    let name = e.detail.name;
+
+    authIsRetried = new CustomEvent("authIsRetried", {
+        detail: {
+            valid: true,
+            name: name,
+        },
+    });
+    console.log(authIsRetried);
 
     // Run on page load
     parseUrl();
