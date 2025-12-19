@@ -530,8 +530,8 @@ async function updatePreview(templateString) {
         preview: newsletter.preview,
         content: content,
         businessAddress: "Address not available in preview only",
-        backgroundImageUrl: newsletter.backgroundImageUrl,
-        backgroundColor: newsletter.backgroundColor
+        backgroundImageUrl: newsletter.backgroundImageUrl || "",
+        backgroundColor: newsletter.backgroundColor || ""
     };
     const previewData = safeSubstitute(templateString, data);
     previewWindow.postMessage(previewData);
