@@ -2,7 +2,7 @@
 let pendingContent = null;
 let authRetried = false;
 
-const version = getAPIMode();
+// const version = getAPIMode();
 const form = document.getElementById('profileForm');
 
 const apiCheckbox = document.getElementById("apiSelector");
@@ -23,33 +23,37 @@ function setAPIMode() {
 }
 
 async function getProfileDetails() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
+    const profile = await apiRequest("profile");
+    console.log(profile);
 
-        if (response.status === 401) {
-        retry(getProfileDetails.name);
-        } if (!response.ok) {
-        throw new Error(`Failed to load newsletter: ${response.status}`);
-        }
+    
+    // const version = getAPIMode();
+    // token = localStorage.getItem("id_token");
+    // try {
+    //     const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
+    //         method: "GET",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             Authorization: token
+    //         }
+    //     });
 
-        const profile = await response.json();
+    //     if (response.status === 401) {
+    //     retry(getProfileDetails.name);
+    //     } if (!response.ok) {
+    //     throw new Error(`Failed to load newsletter: ${response.status}`);
+    //     }
 
-        setProfileDetails(profile);
+    //     const profile = await response.json();
 
-        return profile;
-    } catch (err) {
-        toastMessage("Error loading profile. Please refresh.", false);
-        console.error("Error loading profile:", err);
-        return null;
-    }
+    //     setProfileDetails(profile);
+
+    //     return profile;
+    // } catch (err) {
+    //     toastMessage("Error loading profile. Please refresh.", false);
+    //     console.error("Error loading profile:", err);
+    //     return null;
+    // }
 }
 
 function setProfileDetails(profile) {
