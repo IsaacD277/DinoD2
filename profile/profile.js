@@ -1,6 +1,7 @@
 //#region INITIALIZE
 let pendingContent = null;
 let authRetried = false;
+let profile;
 
 // const version = getAPIMode();
 const form = document.getElementById('profileForm');
@@ -23,40 +24,12 @@ function setAPIMode() {
 }
 
 async function getProfileDetails() {
-    const profile = await apiRequest("profile");
-    console.log(profile);
+    profile = await apiRequest("profile");
 
-    
-    // const version = getAPIMode();
-    // token = localStorage.getItem("id_token");
-    // try {
-    //     const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
-    //         method: "GET",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             Authorization: token
-    //         }
-    //     });
-
-    //     if (response.status === 401) {
-    //     retry(getProfileDetails.name);
-    //     } if (!response.ok) {
-    //     throw new Error(`Failed to load newsletter: ${response.status}`);
-    //     }
-
-    //     const profile = await response.json();
-
-    //     setProfileDetails(profile);
-
-    //     return profile;
-    // } catch (err) {
-    //     toastMessage("Error loading profile. Please refresh.", false);
-    //     console.error("Error loading profile:", err);
-    //     return null;
-    // }
+    setProfileDetails();
 }
 
-function setProfileDetails(profile) {
+function setProfileDetails() {
     const options = {
         timeZone: "America/New_York",
         year: "numeric",
@@ -84,49 +57,72 @@ function setProfileDetails(profile) {
 
 async function populatePreviewEmailDropdown(profile) {
     const userDropdown = document.getElementById("previewEmailDropdown");
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
+    const subscribers = await apiRequest("subscribers");
+
+    userDropdown.innerHTML = "";
+    let foundActive = false;
+    let previewEmailValue = null;
+    subscribers.forEach(sub => {
+        if (sub.condition == "Subscribed") {
+            foundActive = true;
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
+            opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
+            if (profile.previewEmailId === sub.id) {
+                previewEmailValue = opt.value;
             }
-        });
-
-        if (response.status === 401) {
-            retry(populatePreviewEmailDropdown.name);
-        } if (!response.ok) {
-            const message = "Failed to load subscriber list"
-            throw new Error(message);
+            userDropdown.appendChild(opt);
         }
+    });
+    userDropdown.value = previewEmailValue;
 
-        const subscribers = await response.json();
-        userDropdown.innerHTML = "";
-        let foundActive = false;
-        let previewEmailValue = null;
-        subscribers.forEach(sub => {
-            if (sub.condition == "Subscribed") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-                opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-                if (profile.previewEmailId === sub.id) {
-                    previewEmailValue = opt.value;
-                }
-                userDropdown.appendChild(opt);
-            }
-        });
-        userDropdown.value = previewEmailValue;
-
-        if (!foundActive) {
-            userDropdown.innerHTML = '<option value="">No active users</option>';
-        }
-    } catch (e) {
-        console.error(e);
-        userDropdown.innerHTML = '<option value="">Error loading users</option>';
+    if (!foundActive) {
+        userDropdown.innerHTML = '<option value="">No active users</option>';
     }
+
+    // const version = getAPIMode();
+    // token = localStorage.getItem("id_token");
+    // try {
+    //     const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
+    //         method: "GET",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             Authorization: token
+    //         }
+    //     });
+
+    //     if (response.status === 401) {
+    //         retry(populatePreviewEmailDropdown.name);
+    //     } if (!response.ok) {
+    //         const message = "Failed to load subscriber list"
+    //         throw new Error(message);
+    //     }
+
+    //     const subscribers = await response.json();
+        // userDropdown.innerHTML = "";
+        // let foundActive = false;
+        // let previewEmailValue = null;
+        // subscribers.forEach(sub => {
+        //     if (sub.condition == "Subscribed") {
+        //         foundActive = true;
+        //         const opt = document.createElement("option");
+        //         opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
+        //         opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
+        //         if (profile.previewEmailId === sub.id) {
+        //             previewEmailValue = opt.value;
+        //         }
+        //         userDropdown.appendChild(opt);
+        //     }
+        // });
+        // userDropdown.value = previewEmailValue;
+
+        // if (!foundActive) {
+        //     userDropdown.innerHTML = '<option value="">No active users</option>';
+        // }
+    // } catch (e) {
+    //     console.error(e);
+    //     userDropdown.innerHTML = '<option value="">Error loading users</option>';
+    // }
 }
 
 async function populateNewsletterTemplateDropdown(profile) {
