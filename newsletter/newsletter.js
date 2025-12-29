@@ -235,6 +235,7 @@ async function sendPreviewEmail(event, previewEmail = true, emailAddress = null,
   }
 
   await apiRequest("email", "POST", payload);
+  return true;
 }
 
 async function broadcastEmail(event) {
