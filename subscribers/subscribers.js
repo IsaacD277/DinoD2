@@ -1,6 +1,7 @@
 //#region INITIALIZE
 let authRetried = false;
 const form = document.getElementById("addaSubscriber");
+let subscribers;
 
 //#endregion
 
@@ -16,31 +17,11 @@ function compare( a, b ) {
 }
 
 async function getSubscribers() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token")
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
-
-        if (response.status === 401) {
-            retry(getSubscribers.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        } else {
-            const subscribers = await response.json();
-            subscribers.sort(compare);
-            totalSubscribers(subscribers);
-            renderSubscribers(subscribers);
-        }
-    } catch (error) {
-        console.error("Error fetching subscribers:", error);
-        return null;
-    }
+    subscribers = await apiRequest("subscribers")
+    subscribers.sort(compare);
+    totalSubscribers(subscribers);
+    renderSubscribers(subscribers);
+    saveToLocalStorage("subscribers", subscribers);
 }
 
 // Render list in the <ul>
@@ -161,13 +142,9 @@ async function createSubscriber() {
 
 //#region EVENT LISTENERS
 window.addEventListener("DOMContentLoaded", async (e) => {
-    let token = localStorage.getItem("id_token");
-    if (!token) {
-        console.warn("No id_token found after page load.");
-        return null;
-    }
-    getAPIMode();
-    getSubscribers();
+    let local = grabFromLocal("subscribers");
+    totalSubscribers(local);
+    renderSubscribers(local);
 })
 
 window.addEventListener("authReady", async (e) => {
@@ -178,14 +155,8 @@ window.addEventListener("authReady", async (e) => {
             console.warn("No id_token found after auth ready.");
             return null;
         }
-        getAPIMode();
         getSubscribers();
     }
-});
-
-window.addEventListener("authIsRetried", async (e) => {
-    const theName = e.detail.name;
-    window[theName](e);
 });
 //#endregion
 

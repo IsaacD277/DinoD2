@@ -211,34 +211,12 @@ function identifyUser() {
     };
 }
 
-// function retry(theName = null) {
-//     if (!authRetried) {
-//         authRetried = true;
-//         const retryAuth = new CustomEvent("retryAuth", {
-//             detail: {
-//                 retried: true,
-//                 name: theName,
-//             },
-//         });
-
-//         posthog.capture('authorization_retried');
-
-//         window.dispatchEvent(retryAuth);
-//     };
-// }
-//
-// function getAPIMode() {
-//     const version = localStorage.getItem("version") || "v0";
-//     return version;
-// }
-
 //#endregion
 
 //#region EVENT LISTENERS
 
 // Run on page load
 parseUrl();
-// getAPIMode();
 
 // Requires a small delay or else receives 400 "invalid_grant" errors
 setTimeout(async () => {
@@ -249,14 +227,6 @@ setTimeout(async () => {
 //#endregion
 
 //#region BUTTONS
-// Login Button
-// document.getElementById("loginBtn").onclick = () => {
-//     localStorage.clear();
-//     const theUrl = `${domain}/login?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
-//     window.location.assign(theUrl);
-// };
-
-// Logout Button
 document.getElementById("logoutBtn").onclick = () => {
     localStorage.clear();
     window.location.href = `${domain}/logout?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
@@ -289,9 +259,9 @@ document.getElementById("logo").addEventListener("click", () => {
 
 async function apiRequest(endpoint, method = "GET", payload = null) {
     let retries = 0;
-    console.log(`# of Retries: ${retries}`);
+    retries >= 1 ? console.log(`# of Retries: ${retries}`) : null;
     const version = localStorage.getItem("version") || "v0";
-    console.log(`Version: ${version}`);
+    idToken = localStorage.getItem("id_token");
     if (!idToken) {
         console.warn("No idToken. Running checkAuthStatus");
         // Will either refresh tokens or return user to dinod2.com if they need to login again
@@ -324,7 +294,6 @@ async function apiRequest(endpoint, method = "GET", payload = null) {
                     }
                 );
             }
-            console.log("After response");
 
             if (response.status === 401) {
                 console.warn("401 Unauthorized. Reloading access token and retrying...");
@@ -333,8 +302,6 @@ async function apiRequest(endpoint, method = "GET", payload = null) {
                 console.warn("API request failed: " + response.status + " " + response.message);
             } else {
                 const data = await response.json();
-                console.log("Data");
-                console.log(data);
                 return data;
             }
         } catch (err) {
@@ -345,5 +312,14 @@ async function apiRequest(endpoint, method = "GET", payload = null) {
     }
     while (retries < 3);
     console.log("How did I get here?");
+}
+
+function saveToLocalStorage(name, data) {
+    localStorage.setItem(name, JSON.stringify(data));
+}
+
+function grabFromLocal(name) {
+    let localData = localStorage.getItem(name);
+    return JSON.parse(localData);
 }
 //#endregion

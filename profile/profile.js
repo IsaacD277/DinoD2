@@ -26,10 +26,11 @@ function setAPIMode() {
 async function getProfileDetails() {
     profile = await apiRequest("profile");
 
-    setProfileDetails();
+    setProfileDetails(profile);
+    saveToLocalStorage("profile", profile);
 }
 
-function setProfileDetails() {
+function setProfileDetails(profile) {
     const options = {
         timeZone: "America/New_York",
         year: "numeric",
@@ -79,98 +80,31 @@ async function populatePreviewEmailDropdown(profile) {
     if (!foundActive) {
         userDropdown.innerHTML = '<option value="">No active users</option>';
     }
-
-    // const version = getAPIMode();
-    // token = localStorage.getItem("id_token");
-    // try {
-    //     const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-    //         method: "GET",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             Authorization: token
-    //         }
-    //     });
-
-    //     if (response.status === 401) {
-    //         retry(populatePreviewEmailDropdown.name);
-    //     } if (!response.ok) {
-    //         const message = "Failed to load subscriber list"
-    //         throw new Error(message);
-    //     }
-
-    //     const subscribers = await response.json();
-        // userDropdown.innerHTML = "";
-        // let foundActive = false;
-        // let previewEmailValue = null;
-        // subscribers.forEach(sub => {
-        //     if (sub.condition == "Subscribed") {
-        //         foundActive = true;
-        //         const opt = document.createElement("option");
-        //         opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-        //         opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-        //         if (profile.previewEmailId === sub.id) {
-        //             previewEmailValue = opt.value;
-        //         }
-        //         userDropdown.appendChild(opt);
-        //     }
-        // });
-        // userDropdown.value = previewEmailValue;
-
-        // if (!foundActive) {
-        //     userDropdown.innerHTML = '<option value="">No active users</option>';
-        // }
-    // } catch (e) {
-    //     console.error(e);
-    //     userDropdown.innerHTML = '<option value="">Error loading users</option>';
-    // }
 }
 
 async function populateNewsletterTemplateDropdown(profile) {
-    console.log(profile);
     const templateDropdown = document.getElementById("newsletterTemplateDropdown");
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/templates`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
+    const templates = await apiRequest("templates");
+
+    templateDropdown.innerHTML = "";
+    let foundActive = false;
+    let templateValue = null;
+    templates.forEach(template => {
+        if (template.stage == "Active") {
+            foundActive = true;
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
+            opt.textContent = template.friendlyName;
+            if (profile.preferredTemplate === template.id) {
+                templateValue = opt.value;
             }
-        });
-
-        if (response.status === 401) {
-            retry(populateNewsletterTemplateDropdown.name);
-        } if (!response.ok) {
-            const message = "Failed to load newsletter template list"
-            throw new Error(message);
+            templateDropdown.appendChild(opt);
         }
+    });
+    templateDropdown.value = templateValue;
 
-        const templates = await response.json();
-        console.log(templates);
-        templateDropdown.innerHTML = "";
-        let foundActive = false;
-        let templateValue = null;
-        templates.forEach(template => {
-            if (template.stage == "Active") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
-                opt.textContent = template.friendlyName;
-                if (profile.preferredTemplate === template.id) {
-                    templateValue = opt.value;
-                }
-                templateDropdown.appendChild(opt);
-            }
-        });
-        templateDropdown.value = templateValue;
-
-        if (!foundActive) {
-            templateDropdown.innerHTML = '<option value="">No active templates</option>';
-        }
-    } catch (e) {
-        console.error(e);
-        templateDropdown.innerHTML = '<option value="">Error loading templates</option>';
+    if (!foundActive) {
+        templateDropdown.innerHTML = '<option value="">No active templates</option>';
     }
 }
 
@@ -192,40 +126,23 @@ async function saveProfileDetails() {
         previewEmailId: selectedPreviewEmail.id || ""
     };
 
-    try {
-        const version = getAPIMode();
-        token = localStorage.getItem("id_token");
-        const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            },
-            body: JSON.stringify(payload)
-        });
+    const updated = await apiRequest("profile", "PATCH", payload);
 
-        if (response.status === 401) {
-            retry(saveProfileDetails.name);
-        } if (!response.ok) {
-            throw new Error("Failed to save profile");
-        }
-
-        posthog.capture('profile_saved', {
-            successful: true
-        });
+    posthog.capture('profile_saved', {
+        successful: true
+    });
         
-        return true;
-    } catch (err) {
-        console.error(err);
-        posthog.capture('profile_saved', {
-            successful: false
-        });
-        return false;
-    }
+    return true;
 }
+
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    let local = grabFromLocal("profile");
+    setProfileDetails(local);
+});
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {;
@@ -237,11 +154,6 @@ window.addEventListener("authReady", async (e) => {
         
         getProfileDetails();
     }
-});
-
-window.addEventListener("authIsRetried", async (e) => {
-    const theName = e.detail.name;
-    window[theName](e);
 });
 
 //#endregion

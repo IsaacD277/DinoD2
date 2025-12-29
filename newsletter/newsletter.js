@@ -18,9 +18,6 @@ var splitInstance = Split(['#split-0'], {
 });
 let profile;
 
-// Allows for production and development switching
-const version = getAPIMode();
-
 // Pulls newsletterId from the url
 const newsletterId = getNewsletterId();
 
@@ -32,62 +29,18 @@ function getNewsletterId() {
   return params.get('newsletterId');
 }
 
-function getStats() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    fetch(`https://api.dinod2.com/${version}/stats/${encodeURIComponent(newsletterId)}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: token
-        }
-    })
-    .then(res => {
-        if (res.status === 401) {
-            retry(getStats.name);
+async function getStats() {
+    const data = await apiRequest(`stats/${encodeURIComponent(newsletterId)}`);
 
-        }
-        if (!res.ok) throw new Error("Failed to load stats");
-        return res.json();
-    })
-    .then(data => {
-        // Handle stats data here
-        document.getElementById('sendCount').textContent = data.sent || "0";
-        document.getElementById('openRate').textContent = data.openRate ? (data.openRate) + "%" : "0%";
-    })
-    .catch(err => {
-        console.error("Error fetching stats:", err);
-    });
+    document.getElementById('sendCount').textContent = data.sent || "0";
+    document.getElementById('openRate').textContent = data.openRate ? (data.openRate) + "%" : "0%";
 }
 
 async function loadNewsletterData(newsletterId) {
-  token = localStorage.getItem("id_token");
-  try {
-    const response = await fetch(`https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token
-      }
-    });
-
-    if (response.status === 401) {
-      retry(loadNewsletterData.name);
-    } if (!response.ok) {
-      throw new Error(`Failed to load newsletter: ${response.status}`);
-    }
-
-    const newsletter = await response.json();
-    console.log(newsletter);
-
+  const newsletter = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`);
   setNewsletterDetails(newsletter);
 
-  return newsletter
-  } catch (err) {
-    toastMessage("Error loading newsletter. Please refresh", false);
-    console.error("Error loading newsletter:", err);
-    return null;
-  }
+  return newsletter;
 }
 
 function setNewsletterDetails(newsletter) {
@@ -130,29 +83,8 @@ function handleTrixInitialize(event) {
 }
 
 async function getUploadURL() {
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/upload`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
-        
-        if (response.status === 401) {
-            retry(getUploadURL.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        } else {
-            const theUrl = await response.json();
-            return theUrl
-        }
-    } catch (error) {
-        toastMessage("Error getting image URL. Try again.", false);
-        console.error("Error fetching signed URL:", error);
-        return null;
-    }
+    const theUrl = await apiRequest("upload");
+    return theUrl;
 }
 
 async function uploadImage(event = null, image = null) {
@@ -219,44 +151,24 @@ async function uploadImage(event = null, image = null) {
 }
 
 async function saveNewsletter(event) {
-  event.preventDefault();
-  const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
+    event.preventDefault();
+    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
 
-  subject = document.getElementById('subject').value || "";
-  preview = document.getElementById('preview').value || "";
-  content = document.getElementById('content').value || "";
-  sendDate = document.getElementById('sendDate').value || "";
-  template = selectedTemplate.id || "1fc8d430-4f93-478c-8ecc-c47807f1ab07";
+    subject = document.getElementById('subject').value || "";
+    preview = document.getElementById('preview').value || "";
+    content = document.getElementById('content').value || "";
+    sendDate = document.getElementById('sendDate').value || "";
+    template = selectedTemplate.id || "1fc8d430-4f93-478c-8ecc-c47807f1ab07";
 
-  const payload = {
-    subject: subject,
-    preview: preview,
-    content: content,
-    sendDate: sendDate,
-    template: template
-  };
+    const payload = {
+      subject: subject,
+      preview: preview,
+      content: content,
+      sendDate: sendDate,
+      template: template
+    };
 
-  try {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    const response = await fetch(
-      `https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (response.status === 401) {
-      console.log(saveNewsletter.name);
-      retry(saveNewsletter.name);
-    } if (!response.ok) {
-      throw new Error("Failed to save newsletter");
-    }
+    const data = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "PATCH", payload);
 
     toastMessage("Newsletter saved", true);
     posthog.capture('newsletter_saved', {
@@ -268,50 +180,21 @@ async function saveNewsletter(event) {
 
     // Update local variable
     Object.assign(newsletter, payload);
-  } catch (err) {
-    toastMessage("Failed to save newsletter", false);
-    posthog.capture('newsletter_saved', {
-      newsletterId: newsletterId,
-      successful: false,
-      payload: payload,
-      errorMessage: err
-    });
-    console.error(err.message);
-  }
 }
 
 async function updateSettings() {
-  sendDate = document.getElementById('sendDate').value || "";
-  const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
-  template = selectedTemplate.id || "";
-  color = `${document.getElementById('backgroundColor').value}d7` || "#240b0bd7";
+    sendDate = document.getElementById('sendDate').value || "";
+    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
+    template = selectedTemplate.id || "";
+    color = `${document.getElementById('backgroundColor').value}d7` || "#240b0bd7";
 
-  const payload = {
-    sendDate: sendDate,
-    template: template,
-    backgroundColor: color
-  };
+    const payload = {
+      sendDate: sendDate,
+      template: template,
+      backgroundColor: color
+    };
 
-  try {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    const response = await fetch(`https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (response.status === 401) {
-      retry(updateSettings.name);
-    } if (!response.ok) {
-      throw new Error("Failed to update settings");
-    }
-
+    const data = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "PATCH", payload);
     toastMessage("Updated settings", true);
 
     // Update local sendDate
@@ -319,86 +202,39 @@ async function updateSettings() {
     newsletter.template = template;
     await getTemplate();
     await updatePreview(template);
-  } catch (err) {
-    toastMessage("Failed to update settings", false);
-    console.error(err.message);
-  }
 }
 
 async function updateBackgroundImage(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  let image = document.getElementById("backgroundImage").files[0];
+    let image = document.getElementById("backgroundImage").files[0];
 
-  const link = await uploadImage(null, image);
-  console.log(link);
+    const link = await uploadImage(null, image);
+    console.log(link);
 
-  const payload = {
-    backgroundImageUrl: link
-  };
+    const payload = {
+        backgroundImageUrl: link
+    };
 
-  try {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    const response = await fetch(`https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (response.status === 401) {
-      retry(updateBackgroundImage.name);
-    } if (!response.ok) {
-      throw new Error("Failed to update background image");
-    }
+    const data = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "PATCH", payload);
 
     toastMessage("Updated background image", true);
 
     await getTemplate();
     await updatePreview(template);
-  } catch (err) {
-    toastMessage("Failed to update background image", false);
-    console.error(err.message);
-  }
 }
 
 async function sendPreviewEmail(event, previewEmail = true, emailAddress = null, userId = null) {
   await saveNewsletter(event);
-  token = localStorage.getItem("id_token");
 
-  try {
-      const response = await fetch(`https://api.dinod2.com/${version}/email`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              Authorization: token
-          },
-          body: JSON.stringify({
-              newsletterId: newsletterId,
-              previewEmail: previewEmail,
-              emailAddress: emailAddress,
-              userId: userId
-          })
-      });
-
-      if (response.status === 401) {
-          retry(sendPreviewEmail.name);
-      } if (response.ok) {
-          return true;
-      } else {
-          const error = await response.text();
-          console.error(error);
-          return false;
-      }
-  } catch (err) {
-      console.error(err);
-      return false;
+  payload = {
+    newsletterId: newsletterId,
+    previewEmail: previewEmail,
+    emailAddress: emailAddress,
+    userId: userId
   }
+
+  await apiRequest("email", "POST", payload);
 }
 
 async function broadcastEmail(event) {
@@ -415,99 +251,20 @@ async function broadcastEmail(event) {
     return
   }
 
-  try {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    const response = await fetch(
-      `https://api.dinod2.com/${version}/emailAll`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (response.status === 401) {
-      retry(broadcastEmail.name);
-    } if (!response.ok) {
-      const message = "Failed to send newsletter";
-      throw new Error(message);
-    }
-
-    newsletter.stage = "Sent"
-    return true;
-  } catch (err) {
-    console.error(err.message);
-    return false;
-  }
+  await apiRequest("emailAll", "POST", payload);
+  newsletter.stage = "Sent";
 }
 
 async function deleteNewsletter() {
-  try {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    const response = await fetch(
-      `https://api.dinod2.com/${version}/newsletters/${encodeURIComponent(newsletterId)}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token
-        }
-      }
-    );
-
-    if (response.status === 401) {
-      retry(deleteNewsletter.name);
-    } if (!response.ok) {
-      throw new Error("Failed to delete newsletter");
-    }
-
-    return true;
-  } catch (err) {
-    console.error(err.message);
-    return false;
-  }
+  await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "DELETE")
 }
 
 async function getTemplate() {
-    console.log(newsletter);
-    try {
-      const version = getAPIMode();
-      tooken = localStorage.getItem("id_token");
-      const templateReponse = await fetch(
-        `https://api.dinod2.com/${version}/templates/${encodeURIComponent(newsletter.template)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token
-          }
-        }
-      );
+    const data = await apiRequest(`templates/${encodeURIComponent(newsletter.template)}`);
 
-      if (templateReponse.status === 401) {
-        retry(getTemplate.name);
-      } if (!templateReponse.ok) {
-        throw new Error("Failed to get template details");
-      }
+    const response = await fetch(data.s3Url);
 
-      const atemplate = await templateReponse.json();
-
-      const response = await fetch(atemplate.s3Url);
-
-      template = await response.text();
-
-      return;
-    } catch (err) {
-      console.error(err.message);
-      return null;
-    }
-
-
+    template = await response.text();
 }
 
 function safeSubstitute(templateString, data) {
@@ -618,48 +375,27 @@ function resizeImages(html) {
 
 async function populateNewsletterTemplateDropdown() {
     const templateDropdown = document.getElementById("newsletterTemplateDropdown");
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/templates`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
+    const templates = await apiRequest("templates");
+
+    templateDropdown.innerHTML = "";
+    let foundActive = false;
+    let templateValue = null;
+    templates.forEach(template => {
+        if (template.stage == "Active") {
+            foundActive = true;
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
+            opt.textContent = template.friendlyName;
+            if (newsletter.template === template.id) {
+                templateValue = opt.value;
             }
-        });
-
-        if (response.status === 401) {
-            retry(populateNewsletterTemplateDropdown.name);
-        } if (!response.ok) {
-            const message = "Failed to load newsletter template list"
-            throw new Error(message);
+            templateDropdown.appendChild(opt);
         }
+    });
+    templateDropdown.value = templateValue;
 
-        const templates = await response.json();
-        templateDropdown.innerHTML = "";
-        let foundActive = false;
-        let templateValue = null;
-        templates.forEach(template => {
-            if (template.stage == "Active") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
-                opt.textContent = template.friendlyName;
-                if (newsletter.template === template.id) {
-                    templateValue = opt.value;
-                }
-                templateDropdown.appendChild(opt);
-            }
-        });
-        templateDropdown.value = templateValue;
-
-        if (!foundActive) {
-            templateDropdown.innerHTML = '<option value="">No active templates</option>';
-        }
-    } catch (e) {
-        console.error(e);
-        templateDropdown.innerHTML = '<option value="">Error loading templates</option>';
+    if (!foundActive) {
+        templateDropdown.innerHTML = '<option value="">No active templates</option>';
     }
 }
 
@@ -689,79 +425,34 @@ function setSplit(preview = false) {
 }
 
 async function getProfileDetails() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
-
-        if (response.status === 401) {
-        retry(getProfileDetails.name);
-        } if (!response.ok) {
-        throw new Error(`Failed to load newsletter: ${response.status}`);
-        }
-
-        const profile = await response.json();
-
-        populateSubscriberListDropdown(profile);
-
-        return profile;
-    } catch (err) {
-        toastMessage("Error loading profile. Please refresh.", false);
-        console.error("Error loading profile:", err);
-        return null;
-    }
+    const profile = await apiRequest("profile");
+    populateSubscriberListDropdown(profile);
+    return profile;
 }
 
 async function populateSubscriberListDropdown(profile) {
     const userDropdown = document.getElementById("subscriberListDropdown");
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
+
+    const subscribers = await apiRequest("subscribers");
+    userDropdown.innerHTML = "";
+    let foundActive = false;
+    let previewEmailValue = null;
+    subscribers.forEach(sub => {
+        if (sub.condition == "Subscribed") {
+            foundActive = true;
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
+            opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
+            if (profile.previewEmailId === sub.id) {
+                previewEmailValue = opt.value;
             }
-        });
-
-        if (response.status === 401) {
-            retry(populateSubscriberListDropdown.name);
-        } if (!response.ok) {
-            const message = "Failed to load subscriber list"
-            throw new Error(message);
+            userDropdown.appendChild(opt);
         }
+    });
+    userDropdown.value = previewEmailValue;
 
-        const subscribers = await response.json();
-        userDropdown.innerHTML = "";
-        let foundActive = false;
-        let previewEmailValue = null;
-        subscribers.forEach(sub => {
-            if (sub.condition == "Subscribed") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-                opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-                if (profile.previewEmailId === sub.id) {
-                    previewEmailValue = opt.value;
-                }
-                userDropdown.appendChild(opt);
-            }
-        });
-        userDropdown.value = previewEmailValue;
-
-        if (!foundActive) {
-            userDropdown.innerHTML = '<option value="">No active users</option>';
-        }
-    } catch (e) {
-        console.error(e);
-        userDropdown.innerHTML = '<option value="">Error loading users</option>';
+    if (!foundActive) {
+        userDropdown.innerHTML = '<option value="">No active users</option>';
     }
 }
 
@@ -782,7 +473,7 @@ window.addEventListener("authReady", async (e) => {
 
         form = document.getElementById('newsletterForm');
         newsletter = await loadNewsletterData(newsletterId);
-        getStats();
+        await getStats();
         getTemplate();
         populateNewsletterTemplateDropdown();
         profile = getProfileDetails();
@@ -798,9 +489,28 @@ window.addEventListener("authReady", async (e) => {
     }
 });
 
-window.addEventListener("authIsRetried", async (e) => {
-    const theName = e.detail.name;
-    window[theName](e);
+window.addEventListener("DOMContentLoaded", async (e) => {
+    token = localStorage.getItem("id_token");
+    if (!token) {
+        console.warn("No id_token found after auth ready.");
+        return null;
+    }
+
+    form = document.getElementById('newsletterForm');
+    newsletter = await loadNewsletterData(newsletterId);
+    await getStats();
+    getTemplate();
+    populateNewsletterTemplateDropdown();
+    profile = getProfileDetails();
+
+    if (form) {
+      form.addEventListener("submit", saveNewsletter);
+    }
+
+    const existingEditor = document.querySelector("trix-editor");
+    if (existingEditor && existingEditor.editor) {
+        handleTrixInitialize({ target: existingEditor });
+    }
 });
 
 // Upload image when added to Trix
