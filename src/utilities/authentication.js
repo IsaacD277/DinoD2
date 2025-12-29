@@ -258,8 +258,8 @@ document.getElementById("logo").addEventListener("click", () => {
 //#region API
 
 async function apiRequest(endpoint, method = "GET", payload = null) {
+    const maxRetries = 3;
     let retries = 0;
-    retries >= 1 ? console.log(`# of Retries: ${retries}`) : null;
     const version = localStorage.getItem("version") || "v0";
     idToken = localStorage.getItem("id_token");
     if (!idToken) {
@@ -270,6 +270,7 @@ async function apiRequest(endpoint, method = "GET", payload = null) {
     }
 
     do {
+        retries > 0 ? console.log(`Attempt: ${retries + 1}`) : null;
         try {
             let response;
             if (payload) {
@@ -302,16 +303,15 @@ async function apiRequest(endpoint, method = "GET", payload = null) {
                 console.warn("API request failed: " + response.status + " " + response.message);
             } else {
                 const data = await response.json();
+                retries = maxRetries;
                 return data;
             }
         } catch (err) {
                 console.error(err.message);
         }
-
         retries++;
     }
-    while (retries < 3);
-    console.log("How did I get here?");
+    while (retries < maxRetries);
 }
 
 function saveToLocalStorage(name, data) {
