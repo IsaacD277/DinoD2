@@ -73,7 +73,7 @@ The **frontend** (in this repository) is a static web app built with **HTML, Jav
 | ✅ | 04/2025 | Fickle Friday Launch | The launch of original newsletter service built on AWS for my newsletter, Fickle Friday |
 | ✅ | 10/2025 | MVP Complete | Minimum Functioning Email Newsletter Platform. Main functions of the backend complete. Frontend technically capable, but not beautiful |
 | ✅ | 10/20/2025 | First User Onboarding | I will be onboarding one user to provide feedback and build out onboarding process |
-| ⏳ | 12/2025 | Closed Beta Begins | Frontend "beautified" and ready for a handful of additional beta users |
+| ✅ | 12/2025 | Closed Beta Begins | Frontend "beautified" and ready for a handful of additional beta users |
 | ⏳ | 04/2026 | Public Beta | Waitlist opens for early users |
 | ⏳ | 07/2026 | Full Launch | Officially open to the public as a full-blown service. |
 
