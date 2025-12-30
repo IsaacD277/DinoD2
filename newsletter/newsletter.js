@@ -3,7 +3,7 @@
 let trixInitialized = false;
 let newsletterData = null;
 let newsletter = null;
-let authRetried = false;
+let trixAttachmentListener = false;
 let form;
 let backgroundImageform;
 var newsletterSettingsModal = document.getElementById("newsletterSettingsModal");
@@ -63,15 +63,8 @@ function setNewsletterDetails(newsletter) {
     document.getElementById("alreadySent").style.visibility = "hidden"
   }
 
-  if (trixInitialized) {
+  if (trixInitialized && !trixAttachmentListener) {
     loadTrixContent(newsletterData);
-  }
-}
-
-async function loadNewsletter() {
-  // If Trix already ready, load immediately
-  if (trixInitialized) {
-    loadTrixContent(data.content);
   }
 }
 
@@ -81,11 +74,17 @@ function loadTrixContent(data) {
 }
 
 function handleTrixInitialize(event) {
-    trixInitialized = true;
-    // If data already fetched, load it now
-    if (newsletterData) {
-      loadTrixContent(newsletterData);
+  trixInitialized = true;
+  // If data already fetched, load it now
+  if (newsletterData) {
+    loadTrixContent(newsletterData);
+    if (!trixAttachmentListener) {
+      editor.addEventListener("trix-attachment-add", (event) => {
+        uploadImage(event);
+      });
+      trixAttachmentListener = true;
     }
+  }
 }
 
 async function getUploadURL() {
@@ -526,11 +525,6 @@ window.addEventListener("DOMContentLoaded", async (e) => {
     if (existingEditor && existingEditor.editor) {
         handleTrixInitialize({ target: existingEditor });
     }
-});
-
-// Upload image when added to Trix
-addEventListener("trix-attachment-add", (event) => {
-  uploadImage(event);
 });
 
 addEventListener("trix-change", () => {
