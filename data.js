@@ -74,42 +74,15 @@ function renderNewsletterCards(newsletters) {
 }
 
 async function createNewsletter() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/newsletters`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            },
-            body: JSON.stringify({})
-        });
+    const data = await apiRequest("newsletters", "POST", {})
+    const newsletterId = data.id;
 
-        if (response.status === 401) {
-            retry(createNewsletter.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Stage: ${response.stage}`);
-        };
+    posthog.capture('newsletter_created', {
+        newsletterId: newsletterId,
+        successful: true
+    })
 
-        data = await response.json();
-        const newsletterId = data.id;
-
-        posthog.capture('newsletter_created', {
-            newsletterId: newsletterId,
-            successful: true
-        })
-
-        window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
-
-    } catch (error) {
-        console.error(error);
-        posthog.capture('newsletter_created', {
-            newsletterId: newsletterId,
-            successful: false
-        })
-        return null
-    }
+    window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
 }
 
 //#endregion
