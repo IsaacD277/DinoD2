@@ -1,12 +1,10 @@
 //#region INITIALIZE
 let pendingContent = null;
-let authRetried = false;
 let profile;
-
-// const version = getAPIMode();
+let appSettingsModal = document.getElementById("appSettingsModal");
 const form = document.getElementById('profileForm');
-
 const apiCheckbox = document.getElementById("apiSelector");
+
 if (apiCheckbox) {
     apiCheckbox.addEventListener('change', setAPIMode);
 }
@@ -14,6 +12,16 @@ if (apiCheckbox) {
 //#endregion
 
 //#region FUNCTIONS
+function initializeAPIMode() {
+    const apiCheckbox = document.getElementById("apiSelector");
+    const version = localStorage.getItem("version");
+    if (version == "development") {
+        apiCheckbox.checked = true;
+    } else {
+        apiCheckbox.checked = false;
+    }
+}
+
 function setAPIMode() {
     const apiCheckbox = document.getElementById("apiSelector");
     const apiMode = apiCheckbox.checked ? 'development' : 'v0';
@@ -139,6 +147,7 @@ async function saveProfileDetails() {
 
 //#region EVENT LISTENERS
 window.addEventListener("DOMContentLoaded", async (e) => {
+    initializeAPIMode();
     let local = grabFromLocal("profile");
     setProfileDetails(local);
 });
@@ -156,6 +165,12 @@ window.addEventListener("authReady", async (e) => {
     }
 });
 
+window.onclick = function(event) {
+  if (event.target == appSettingsModal) {
+    appSettingsModal.style.display = "none";
+  }
+} 
+
 //#endregion
 
 //#region BUTTONS
@@ -171,5 +186,9 @@ form.addEventListener('submit', async (e) => {
         toastMessage("Error saving profile", success);
     }
 });
+
+document.getElementById("changeSettings").onclick = () => {
+  appSettingsModal.style.display = "block";
+};
 
 //#endregion

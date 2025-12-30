@@ -115,15 +115,24 @@
         <button type="submit">Save Changes</button>
       </form>
     </div>  
-    <!-- <div id="stage"></div> -->
   </div>
 
   <div>
-    <span>Dev Mode</span>
-    <input type="checkbox" id="apiSelector">
+    <button id="changeSettings">Settings, changes, and support</button>
   </div>
 
+  <!--  -->
+
   <div id="snackbar"></div>
+
+  <div id="appSettingsModal" class="modal">
+    <div class="modal-content">
+      <span>Dev Mode</span>
+      <input type="checkbox" name="Dev Mode" id="apiSelector"><br>
+      <a href="https://dinod2.com/changes" target="_blank">DinoD2 Latest Updates</a><br>
+      <p>For support, email  <a href="mailto:support@isaacd2.com">support@isaacd2.com</a></p>
+    </div>
+  </div>
 
   <script src="/src/utilities/authentication.js"></script>
   <script src="/src/utilities/popups.js"></script>
