@@ -521,6 +521,32 @@ button[type="button"]:hover {
     cursor: col-resize;
 }
 
+/* Tooltip container */
+.tooltip {
+  cursor: pointer;
+}
+
+/* Tooltip text */
+.tooltiptext {
+  visibility: hidden; /* Hidden by default */
+  width: 164px;
+  background-color: #F7D4A7;
+  color: var(--basic-text-color);
+  text-align: center;
+  font-weight: 500;
+  padding: 8px;
+  border-radius: 6px;
+  position: absolute;
+  inset-inline-start: -164px;
+  box-shadow: var(--basic-drop-shadow);
+  z-index: 1; /* Ensure tooltip is displayed above content */
+}
+
+/* Show the tooltip text on hover */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
 /* Animations to fade the snackbar in and out */
 @-webkit-keyframes fadein {
   from {opacity: 0;}

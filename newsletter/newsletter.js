@@ -44,7 +44,6 @@ async function loadNewsletterData(newsletterId) {
 }
 
 function setNewsletterDetails(newsletter) {
-  console.log(newsletter);
   document.getElementById('subject').value = newsletter.subject || "Untitled";
   document.getElementById('preview').value = newsletter.preview || "";
   newsletterData = newsletter.content || "";
@@ -55,6 +54,13 @@ function setNewsletterDetails(newsletter) {
     backgroundColor = newsletter.backgroundColor.substring(0,7);
   } else {
     backgroundColor = "#000000"
+  }
+
+  if (newsletter.stage == "Sent") {
+    document.getElementById("sendToEveryone").style.color = "#767676"
+    document.getElementById("alreadySent").textContent = "This newsletter cannot be sent to everyone twice"
+  } else {
+    document.getElementById("alreadySent").style.visibility = "hidden"
   }
 
   if (trixInitialized) {
@@ -254,10 +260,18 @@ async function broadcastEmail(event) {
 
   await apiRequest("emailAll", "POST", payload);
   newsletter.stage = "Sent";
+
+  if (newsletter.stage == "Sent") {
+    document.getElementById("sendToEveryone").style.color = "#767676";
+    document.getElementById("alreadySent").textContent = "This newsletter cannot be sent to everyone twice";
+    document.getElementById("alreadySent").style.visibility = "visible";
+  }
+  return true;
 }
 
 async function deleteNewsletter() {
   await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "DELETE")
+  return true;
 }
 
 async function getTemplate() {
