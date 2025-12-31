@@ -1,6 +1,5 @@
 //#region INITIALIZE
 let pendingContent = null;
-let authRetried = false;
 const subscriberId = getSubscriberId();
 const form = document.getElementById('subscriberForm');
 

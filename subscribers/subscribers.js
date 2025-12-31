@@ -1,5 +1,4 @@
 //#region INITIALIZE
-let authRetried = false;
 const form = document.getElementById("addaSubscriber");
 let subscribers;
 

@@ -1,6 +1,5 @@
 //#region INITIALIZE
 let token = null;
-let authRetried = false;
 let newsletters;
 //#endregion
 
