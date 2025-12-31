@@ -9,6 +9,7 @@ let backgroundImageform;
 var newsletterSettingsModal = document.getElementById("newsletterSettingsModal");
 var singleSendModal = document.getElementById("singleSendModal");
 var preview = document.getElementById("previewContainer");
+const editor = document.querySelector("trix-editor");
 let livePreview = false;
 let template = null;
 const previewWindow = document.querySelector("iframe").contentWindow;
@@ -69,7 +70,6 @@ function setNewsletterDetails(newsletter) {
 }
 
 function loadTrixContent(data) {
-  const editor = document.querySelector("trix-editor");
   if (editor) editor.editor.loadHTML(data || "");
 }
 
