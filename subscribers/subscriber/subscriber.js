@@ -13,33 +13,12 @@ function getSubscriberId() {
 }
 
 async function getSubscriber() {
-    const version = getAPIMode();
     const subscriberId = getSubscriberId();
-    token = localStorage.getItem("id_token")
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/subscribers/${encodeURIComponent(subscriberId)}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
-
-        if (response.status === 401) {
-            retry(getSubscriber.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        } else {
-            const data = await response.json();
-            document.getElementById('firstName').value = data.firstName || "";
-            document.getElementById('emailAddress').value = data.emailAddress || "";
-            document.getElementById('conditionDropdown').value = data.condition || "subscribed";
-            document.getElementById('pageTitle').textContent = "Edit Subscriber";
-        }
-    } catch (error) {
-        console.error("Error fetching subscribers:", error);
-        return null;
-    }
+    const data = await apiRequest(`subscribers/${encodeURIComponent(subscriberId)}`);
+    document.getElementById('firstName').value = data.firstName || "";
+    document.getElementById('emailAddress').value = data.emailAddress || "";
+    document.getElementById('conditionDropdown').value = data.condition || "subscribed";
+    document.getElementById('pageTitle').textContent = "Edit Subscriber";
 }
 
 async function updateSubscriber() {
@@ -50,70 +29,30 @@ async function updateSubscriber() {
         condition: condition || "Subscribed"
     };
 
-    try {
-        if (condition === 'Deleted') {
-            const version = getAPIMode();
-            const response = await fetch(`https://api.dinod2.com/${version}/subscribers/${encodeURIComponent(subscriberId)}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: token
-                }
-            });
+    if (condition === 'Deleted') {
+        const data = await apiRequest(`subscribers/${encodeURIComponent(subscriberId)}`, "DELETE");
 
-            if (response.status === 401) {
-                retry(updateSubscriber.name);
-            } if (!response.ok) {
-                throw new Error(`Failed to delete subscriber`);
-            }
-
-            toastMessage("Successfully deleted subscriber", true);
-
-            return;
-        } else {
-            const version = getAPIMode();
-            const response = await fetch(
-                `https://api.dinod2.com/${version}/subscribers/${encodeURIComponent(subscriberId)}`,
-                {
-                method: "PATCH",
-                headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.status === 401) {
-                retry(updateSubscriber.name);
-            } if (!response.ok) {
-                throw new Error("Failed to save subscriber");
-            }
-
-            toastMessage("Successfully saved changes", true);
-            
-            posthog.capture('subscriber_updated', {
-                subscriberId: subscriberId,
-                toCondition: condition,
-                successful: true
-            });
-
-            return;
-        }
-    } catch (err) {
-        console.error(err);
-        toastMessage("Failed to save changes", false);
+        toastMessage("Successfully deleted subscriber", true);
+    } else {
+        const data = await apiRequest(`subscribers/${encodeURIComponent(subscriberId)}`, "PATCH", payload);
+        
+        toastMessage("Successfully saved changes", true);
+        
         posthog.capture('subscriber_updated', {
             subscriberId: subscriberId,
             toCondition: condition,
-            successful: false
+            successful: true
         });
-        return;
     }
 }
 
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    await getSubscriber();
+});
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {
@@ -124,11 +63,6 @@ window.addEventListener("authReady", async (e) => {
         }
         await getSubscriber();
     }
-});
-
-window.addEventListener("authIsRetried", async (e) => {
-    const theName = e.detail.name;
-    window[theName](e);
 });
 
 //#endregion

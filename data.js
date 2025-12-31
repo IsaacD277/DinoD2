@@ -1,6 +1,7 @@
 //#region INITIALIZE
 let token = null;
 let authRetried = false;
+let newsletters;
 //#endregion
 
 //#region FUNCTIONS
@@ -22,31 +23,11 @@ function truncate(input, maxCharacters) {
 }
 
 async function getNewsletters() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/newsletters`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
-
-        if (response.status === 401) {
-            retry(getNewsletters.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        };
-
-        const newsletters = await response.json();
-        newsletters.sort( compare );
-        console.log(newsletters);
-        renderNewsletterCards(newsletters);
-    } catch (error) {
-        console.error("Error fetching newsletters:", error);
-        return null;
-    }
+    let newsletters = await apiRequest("newsletters");
+    newsletters.sort( compare );
+    console.log(newsletters);
+    renderNewsletterCards(newsletters);
+    saveToLocalStorage("newsletters", newsletters);
 }
 
 function renderNewsletterCards(newsletters) {
@@ -93,55 +74,23 @@ function renderNewsletterCards(newsletters) {
 }
 
 async function createNewsletter() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/newsletters`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            },
-            body: JSON.stringify({})
-        });
+    const data = await apiRequest("newsletters", "POST", {})
+    const newsletterId = data.id;
 
-        if (response.status === 401) {
-            retry(createNewsletter.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Stage: ${response.stage}`);
-        };
+    posthog.capture('newsletter_created', {
+        newsletterId: newsletterId,
+        successful: true
+    })
 
-        data = await response.json();
-        const newsletterId = data.id;
-
-        posthog.capture('newsletter_created', {
-            newsletterId: newsletterId,
-            successful: true
-        })
-
-        window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
-
-    } catch (error) {
-        console.error(error);
-        posthog.capture('newsletter_created', {
-            newsletterId: newsletterId,
-            successful: false
-        })
-        return null
-    }
+    window.location.href = `/newsletter/?newsletterId=${newsletterId}`;
 }
 
 //#endregion
 
 //#region EVENT LISTENERS
 window.addEventListener("DOMContentLoaded", async (e) => {
-    let token = localStorage.getItem("id_token");
-    if (!token) {
-        console.warn("No id_token found after page load.");
-        return null;
-    }
-    getAPIMode();
-    getNewsletters();
+    let local = grabFromLocal("newsletters");
+    renderNewsletterCards(local);
 });
 
 window.addEventListener("authReady", async (e) => {
@@ -152,14 +101,8 @@ window.addEventListener("authReady", async (e) => {
             console.warn("No id_token found after auth ready.");
             return null;
         }
-        getAPIMode();
         getNewsletters();
     }
-});
-
-window.addEventListener("authIsRetried", async (e) => {
-    const theName = e.detail.name;
-    window[theName](e);
 });
 
 //#endregion

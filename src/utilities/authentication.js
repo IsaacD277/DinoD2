@@ -11,7 +11,6 @@ const authNotReady = new CustomEvent("authReady", {
         valid: false,
     },
 });
-let authIsRetried;
 
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const isDev = window.location.hostname === "dev.dinod2.com";
@@ -21,7 +20,7 @@ const redirectUri = isLocal ? "http://localhost:5500" : isDev ? "https://dev.din
 const logoutUri = isLocal ? "http://localhost:5500" : isDev ? "https://dev.dinod2.com" : "https://app.dinod2.com"; // must match Cognito app settings
 const scope = "aws.cognito.signin.user.admin+email+openid+phone"; // must match Cognito app settings // USE '+' for spaces
 const responseType = "code"; // Implicit flow for static sites
-
+let idToken;
 //#endregion
 
 //#region FUNCTIONS
@@ -40,12 +39,6 @@ function parseUrl() {
 }
 
 function setAuthStatus(status = false) {
-    console.log(authRetried);
-    if (authRetried) {
-        console.log(authIsRetried);
-        window.dispatchEvent(authIsRetried);
-        return;
-    }
     if (!authResolved) {
         authResolved = true;
         if (status) {
@@ -58,39 +51,38 @@ function setAuthStatus(status = false) {
 
 async function checkAuthStatus(forceRefresh = false) {
     // Gather local variables
-    const idToken = localStorage.getItem("id_token") || null;
+    idToken = localStorage.getItem("id_token") || null;
 
     // If there is not a token, ask Cognito for one
     if (idToken === undefined || idToken === null) {
         const hasToken = await getToken();
-        setAuthStatus(hasToken);
         if (!hasToken) {
             localStorage.clear();
             window.location.href = "https://dinod2.com";
         }
         identifyUser();
-        return;
+        return true;
     }
 
+    // Check token expiration
     const expiration = localStorage.getItem("expires");
     const requested = localStorage.getItem("requested");
     const currentDate = Math.floor(Date.now() / 1000); // Date.now() returns milliseconds, expiration is in seconds
 
+    // If token is within 25% or higher of its expiration, refresh (15 or less minutes in a 60 minute token length)
     if ((((expiration - requested) * 0.75) + parseInt(requested) < currentDate) || forceRefresh) {
         const theRefreshToken = localStorage.getItem("refresh_token");
         const refreshed = await refreshToken(theRefreshToken);
-        setAuthStatus(refreshed);
         if (!refreshed) {
             localStorage.clear();
             window.location.href = "https://dinod2.com";
         }
         identifyUser();
-        return;
+        return true;
     }
 
-    setAuthStatus(true);
     identifyUser();
-    return;
+    return true;
 }
 
 async function getToken() {
@@ -126,6 +118,7 @@ async function getToken() {
 
         if (tokens) {
             localStorage.setItem("id_token", tokens.id_token);
+            idToken = tokens.id_token;
             localStorage.setItem("access_token", tokens.access_token);
             localStorage.setItem("refresh_token", tokens.refresh_token);
             localStorage.setItem("requested", date);
@@ -181,6 +174,7 @@ async function refreshToken(refreshToken) {
 
         if (tokens) {
             localStorage.setItem("id_token", tokens.id_token);
+            idToken = tokens.id_token;
             localStorage.setItem("access_token", tokens.access_token);
             localStorage.setItem("requested", Math.floor(Date.now() / 1000));
             localStorage.setItem("expires", Math.floor(Date.now() / 1000) + tokens.expires_in);
@@ -217,74 +211,22 @@ function identifyUser() {
     };
 }
 
-function retry(theName = null) {
-    if (!authRetried) {
-        authRetried = true;
-        const retryAuth = new CustomEvent("retryAuth", {
-            detail: {
-                retried: true,
-                name: theName,
-            },
-        });
-
-        posthog.capture('authorization_retried');
-
-        window.dispatchEvent(retryAuth);
-    };
-}
-
-function getAPIMode() {
-    const version = localStorage.getItem("version") || "v0";
-    return version;
-}
-
 //#endregion
 
 //#region EVENT LISTENERS
 
 // Run on page load
 parseUrl();
-getAPIMode();
 
 // Requires a small delay or else receives 400 "invalid_grant" errors
-setTimeout(() => {
-    checkAuthStatus();
+setTimeout(async () => {
+    let authorized = await checkAuthStatus();
+    setAuthStatus(authorized);
 }, 50);
-
-window.addEventListener("retryAuth", async (e) => {
-    console.log("Retrying Auth");
-    authResolved = false;
-    console.log(e);
-    let name = e.detail.name;
-
-    authIsRetried = new CustomEvent("authIsRetried", {
-        detail: {
-            valid: true,
-            name: name,
-        },
-    });
-    console.log(authIsRetried);
-
-    // Run on page load
-    parseUrl();
-
-    // Requires a small delay or else receives 400 "invalid_grant" errors
-    setTimeout(() => {
-        checkAuthStatus(true);
-    }, 50);
-});
 
 //#endregion
 
 //#region BUTTONS
-// Login Button
-// document.getElementById("loginBtn").onclick = () => {
-//     localStorage.clear();
-//     const theUrl = `${domain}/login?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
-//     window.location.assign(theUrl);
-// };
-
-// Logout Button
 document.getElementById("logoutBtn").onclick = () => {
     localStorage.clear();
     window.location.href = `${domain}/logout?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
@@ -311,4 +253,73 @@ document.getElementById("logo").addEventListener("click", () => {
     window.location.href = '/';
 });
 
+//#endregion
+
+//#region API
+
+async function apiRequest(endpoint, method = "GET", payload = null) {
+    const maxRetries = 3;
+    let retries = 0;
+    const version = localStorage.getItem("version") || "v0";
+    idToken = localStorage.getItem("id_token");
+    if (!idToken) {
+        console.warn("No idToken. Running checkAuthStatus");
+        // Will either refresh tokens or return user to dinod2.com if they need to login again
+        await checkAuthStatus();
+        console.log(`idToken after running checkAuthStatus: ${idToken}`);
+    }
+
+    do {
+        retries > 0 ? console.log(`Attempt: ${retries + 1}`) : null;
+        try {
+            let response;
+            if (payload) {
+                response = await fetch(`https://api.dinod2.com/${version}/${endpoint}`,
+                    {
+                        method: method,
+                        headers: {
+                        "Content-Type": "application/json",
+                        Authorization: idToken
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+            } else {
+                response = await fetch(`https://api.dinod2.com/${version}/${endpoint}`,
+                    {
+                        method: method,
+                        headers: {
+                        "Content-Type": "application/json",
+                        Authorization: idToken
+                        }
+                    }
+                );
+            }
+
+            if (response.status === 401) {
+                console.warn("401 Unauthorized. Reloading access token and retrying...");
+                await checkAuthStatus(true);
+            } if (!response.ok) {
+                console.warn("API request failed: " + response.status + " " + response.message);
+            } else {
+                const data = await response.json();
+                retries = maxRetries;
+                return data;
+            }
+        } catch (err) {
+                console.error(err.message);
+        }
+        retries++;
+    }
+    while (retries < maxRetries);
+}
+
+function saveToLocalStorage(name, data) {
+    localStorage.setItem(name, JSON.stringify(data));
+}
+
+function grabFromLocal(name) {
+    let localData = localStorage.getItem(name);
+    return JSON.parse(localData);
+}
 //#endregion

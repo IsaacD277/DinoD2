@@ -1,11 +1,10 @@
 //#region INITIALIZE
 let pendingContent = null;
-let authRetried = false;
-
-const version = getAPIMode();
+let profile;
+let appSettingsModal = document.getElementById("appSettingsModal");
 const form = document.getElementById('profileForm');
-
 const apiCheckbox = document.getElementById("apiSelector");
+
 if (apiCheckbox) {
     apiCheckbox.addEventListener('change', setAPIMode);
 }
@@ -13,6 +12,16 @@ if (apiCheckbox) {
 //#endregion
 
 //#region FUNCTIONS
+function initializeAPIMode() {
+    const apiCheckbox = document.getElementById("apiSelector");
+    const version = localStorage.getItem("version");
+    if (version == "development") {
+        apiCheckbox.checked = true;
+    } else {
+        apiCheckbox.checked = false;
+    }
+}
+
 function setAPIMode() {
     const apiCheckbox = document.getElementById("apiSelector");
     const apiMode = apiCheckbox.checked ? 'development' : 'v0';
@@ -23,33 +32,10 @@ function setAPIMode() {
 }
 
 async function getProfileDetails() {
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            }
-        });
+    profile = await apiRequest("profile");
 
-        if (response.status === 401) {
-        retry(getProfileDetails.name);
-        } if (!response.ok) {
-        throw new Error(`Failed to load newsletter: ${response.status}`);
-        }
-
-        const profile = await response.json();
-
-        setProfileDetails(profile);
-
-        return profile;
-    } catch (err) {
-        toastMessage("Error loading profile. Please refresh.", false);
-        console.error("Error loading profile:", err);
-        return null;
-    }
+    setProfileDetails(profile);
+    saveToLocalStorage("profile", profile);
 }
 
 function setProfileDetails(profile) {
@@ -80,97 +66,53 @@ function setProfileDetails(profile) {
 
 async function populatePreviewEmailDropdown(profile) {
     const userDropdown = document.getElementById("previewEmailDropdown");
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
+    const subscribers = await apiRequest("subscribers");
+
+    userDropdown.innerHTML = "";
+    let foundActive = false;
+    let previewEmailValue = null;
+    subscribers.forEach(sub => {
+        if (sub.condition == "Subscribed") {
+            foundActive = true;
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
+            opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
+            if (profile.previewEmailId === sub.id) {
+                previewEmailValue = opt.value;
             }
-        });
-
-        if (response.status === 401) {
-            retry(populatePreviewEmailDropdown.name);
-        } if (!response.ok) {
-            const message = "Failed to load subscriber list"
-            throw new Error(message);
+            userDropdown.appendChild(opt);
         }
+    });
+    userDropdown.value = previewEmailValue;
 
-        const subscribers = await response.json();
-        userDropdown.innerHTML = "";
-        let foundActive = false;
-        let previewEmailValue = null;
-        subscribers.forEach(sub => {
-            if (sub.condition == "Subscribed") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-                opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-                if (profile.previewEmailId === sub.id) {
-                    previewEmailValue = opt.value;
-                }
-                userDropdown.appendChild(opt);
-            }
-        });
-        userDropdown.value = previewEmailValue;
-
-        if (!foundActive) {
-            userDropdown.innerHTML = '<option value="">No active users</option>';
-        }
-    } catch (e) {
-        console.error(e);
-        userDropdown.innerHTML = '<option value="">Error loading users</option>';
+    if (!foundActive) {
+        userDropdown.innerHTML = '<option value="">No active users</option>';
     }
 }
 
 async function populateNewsletterTemplateDropdown(profile) {
-    console.log(profile);
     const templateDropdown = document.getElementById("newsletterTemplateDropdown");
-    const version = getAPIMode();
-    token = localStorage.getItem("id_token");
-    try {
-        const response = await fetch(`https://api.dinod2.com/${version}/templates`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
+    const templates = await apiRequest("templates");
+
+    templateDropdown.innerHTML = "";
+    let foundActive = false;
+    let templateValue = null;
+    templates.forEach(template => {
+        if (template.stage == "Active") {
+            foundActive = true;
+            const opt = document.createElement("option");
+            opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
+            opt.textContent = template.friendlyName;
+            if (profile.preferredTemplate === template.id) {
+                templateValue = opt.value;
             }
-        });
-
-        if (response.status === 401) {
-            retry(populateNewsletterTemplateDropdown.name);
-        } if (!response.ok) {
-            const message = "Failed to load newsletter template list"
-            throw new Error(message);
+            templateDropdown.appendChild(opt);
         }
+    });
+    templateDropdown.value = templateValue;
 
-        const templates = await response.json();
-        console.log(templates);
-        templateDropdown.innerHTML = "";
-        let foundActive = false;
-        let templateValue = null;
-        templates.forEach(template => {
-            if (template.stage == "Active") {
-                foundActive = true;
-                const opt = document.createElement("option");
-                opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
-                opt.textContent = template.friendlyName;
-                if (profile.preferredTemplate === template.id) {
-                    templateValue = opt.value;
-                }
-                templateDropdown.appendChild(opt);
-            }
-        });
-        templateDropdown.value = templateValue;
-
-        if (!foundActive) {
-            templateDropdown.innerHTML = '<option value="">No active templates</option>';
-        }
-    } catch (e) {
-        console.error(e);
-        templateDropdown.innerHTML = '<option value="">Error loading templates</option>';
+    if (!foundActive) {
+        templateDropdown.innerHTML = '<option value="">No active templates</option>';
     }
 }
 
@@ -192,40 +134,24 @@ async function saveProfileDetails() {
         previewEmailId: selectedPreviewEmail.id || ""
     };
 
-    try {
-        const version = getAPIMode();
-        token = localStorage.getItem("id_token");
-        const response = await fetch(`https://api.dinod2.com/${version}/profile`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            },
-            body: JSON.stringify(payload)
-        });
+    const updated = await apiRequest("profile", "PATCH", payload);
 
-        if (response.status === 401) {
-            retry(saveProfileDetails.name);
-        } if (!response.ok) {
-            throw new Error("Failed to save profile");
-        }
-
-        posthog.capture('profile_saved', {
-            successful: true
-        });
+    posthog.capture('profile_saved', {
+        successful: true
+    });
         
-        return true;
-    } catch (err) {
-        console.error(err);
-        posthog.capture('profile_saved', {
-            successful: false
-        });
-        return false;
-    }
+    return true;
 }
+
 //#endregion
 
 //#region EVENT LISTENERS
+window.addEventListener("DOMContentLoaded", async (e) => {
+    initializeAPIMode();
+    let local = grabFromLocal("profile");
+    setProfileDetails(local);
+});
+
 window.addEventListener("authReady", async (e) => {
     const loggedIn = e.detail.valid;
     if (loggedIn) {;
@@ -239,10 +165,11 @@ window.addEventListener("authReady", async (e) => {
     }
 });
 
-window.addEventListener("authIsRetried", async (e) => {
-    const theName = e.detail.name;
-    window[theName](e);
-});
+window.onclick = function(event) {
+  if (event.target == appSettingsModal) {
+    appSettingsModal.style.display = "none";
+  }
+} 
 
 //#endregion
 
@@ -259,5 +186,9 @@ form.addEventListener('submit', async (e) => {
         toastMessage("Error saving profile", success);
     }
 });
+
+document.getElementById("changeSettings").onclick = () => {
+  appSettingsModal.style.display = "block";
+};
 
 //#endregion
