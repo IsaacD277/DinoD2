@@ -97,7 +97,7 @@ async function createSubscriber() {
             emailAddress: emailAddress,
             firstName: firstName
         };
-        const data = await apiRequest("susbscribers", "POST", payload)
+        const data = await apiRequest("subscribers", "POST", payload)
         toastMessage("Created new subscriber", true);
 
         posthog.capture('subscriber_created', {
