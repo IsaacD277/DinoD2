@@ -97,24 +97,7 @@ async function createSubscriber() {
             emailAddress: emailAddress,
             firstName: firstName
         };
-        version = getAPIMode();
-        token = localStorage.getItem("id_token");
-        const response = await fetch(`https://api.dinod2.com/${version}/subscribers`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: token
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.status === 401) {
-            retry(createSubscriber.name);
-        } if (!response.ok) {
-            throw new Error(`HTTP error! Stage: ${response.stage}`);
-        }
-
-        data = await response.json();
+        const data = await apiRequest("susbscribers", "POST", payload)
         toastMessage("Created new subscriber", true);
 
         posthog.capture('subscriber_created', {
