@@ -60,6 +60,7 @@ h3 {
 
 input[type="text"],
 input[type="email"],
+input[type="search"],
 select {
     padding: 0.75em;
     border: 2px solid #edf1f0;
@@ -215,6 +216,7 @@ td button:hover {
 
     input[type="text"],
     input[type="email"],
+    input[type="search"],
     select {
     width: 100%;
     }

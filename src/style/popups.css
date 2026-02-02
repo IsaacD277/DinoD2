@@ -89,6 +89,12 @@
   cursor: default;
 }
 
+.modal-inputs {
+  margin: 10px;
+  /* padding-top: 10px;
+  padding-bottom: 10px; */
+}
+
 .modal-button {
     border-radius: 20px;
     border: 0px;

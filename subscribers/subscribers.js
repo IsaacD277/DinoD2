@@ -1,5 +1,7 @@
 //#region INITIALIZE
 const form = document.getElementById("addaSubscriber");
+const searchInput = document.getElementById("search");
+var addSubscriberModal = document.getElementById("addSubscriberModal");
 let subscribers;
 
 //#endregion
@@ -24,7 +26,7 @@ async function getSubscribers() {
 }
 
 // Render list in the <ul>
-function renderSubscribers(subscribers) {
+function renderSubscribers(subscribers, filter = "") {
     const table = document.getElementById("subscribersTable");
     const tbody = table.querySelector("tbody");
     tbody.innerHTML = "";
@@ -40,6 +42,10 @@ function renderSubscribers(subscribers) {
         month: "short",
         day: "numeric"
     };
+
+    if (filter) {
+        subscribers = subscribers.filter((subscriber) => (subscriber.firstName.toLowerCase().includes(filter)) || (subscriber.emailAddress.toLowerCase().includes(filter)) || (subscriber.created.includes(filter)) || (subscriber.condition.toLowerCase().includes(filter)))
+    }
 
     subscribers.forEach(sub => {
         const subscribeDate = sub.created ? new Date(sub.created) : null;
@@ -78,11 +84,10 @@ function renderSubscribers(subscribers) {
 function totalSubscribers(subscribers) {
     if (!subscribers) return 0;
     if (Array.isArray(subscribers)) {
-        const total = subscribers.length;
+        const total = subscribers.filter(sub => sub.condition == "Subscribed").length;
         const heading = document.getElementById("subscribersHeading");
         heading.textContent = `${total} Subscriber${total === 1 ? "" : "s"}`;
     }
-    
 }
 
 async function createSubscriber() {
@@ -140,12 +145,36 @@ window.addEventListener("authReady", async (e) => {
         getSubscribers();
     }
 });
+
+searchInput.addEventListener("input", (e) => {
+    let value = e.target.value.toLowerCase().trim();
+    if (value) {
+        renderSubscribers(subscribers, value);
+    } else {
+        renderSubscribers(subscribers);
+    }
+});
+
+window.onclick = function(event) {
+  if (event.target == addSubscriberModal) {
+    addSubscriberModal.style.display = "none";
+  }
+} 
 //#endregion
 
 //#region BUTTONS
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    await createSubscriber();
-});
+// form.addEventListener("submit", async (e) => {
+//     e.preventDefault();
+//     await createSubscriber();
+// });
+
+document.getElementById("addSubscriber").onclick = () => {
+    addSubscriberModal.style.display = "block";
+}
+
+document.getElementById("submitSettings").onclick = async => {
+  createSubscriber();
+  addSubscriberModal.style.display = "none";
+}
 
 //#endregion
