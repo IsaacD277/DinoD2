@@ -12,14 +12,24 @@ body {
     color: #2D3142;
     display: flex;
 }
+
 .container {
-    max-width: 900px;
+    max-width: 1200px;
+    width: 1000px;
     margin: 0 auto;
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 2.5em;
 }
+
+/* .section {
+    background: white;
+    border-radius: 20px;
+    padding: 2em;
+    margin-bottom: 2em;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+} */
 
 .container button {
     padding: 5px 10px;

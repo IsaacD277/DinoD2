@@ -1,5 +1,6 @@
 //#region INITIALIZE
 // Initial values set
+let receiving = false;
 let trixInitialized = false;
 let newsletterData = null;
 let newsletter = null;
@@ -13,11 +14,12 @@ const editor = document.querySelector("trix-editor");
 let livePreview = false;
 let template = null;
 const previewWindow = document.querySelector("iframe").contentWindow;
-var splitInstance = Split(['#split-0'], {
-    minSize: 500,
-    gutterSize: 16,
-});
+// var splitInstance = Split(['#split-0'], {
+//     minSize: 500,
+//     gutterSize: 16,
+// });
 let profile;
+// attachmentFlipper();
 
 // Pulls newsletterId from the url
 const newsletterId = getNewsletterId();
@@ -40,7 +42,6 @@ async function getStats() {
 async function loadNewsletterData(newsletterId) {
   const newsletter = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`);
   setNewsletterDetails(newsletter);
-
   return newsletter;
 }
 
@@ -79,9 +80,7 @@ function handleTrixInitialize(event) {
   if (newsletterData) {
     loadTrixContent(newsletterData);
     if (!trixAttachmentListener) {
-      editor.addEventListener("trix-attachment-add", (event) => {
-        uploadImage(event);
-      });
+
       trixAttachmentListener = true;
     }
   }
@@ -206,7 +205,7 @@ async function updateSettings() {
     newsletter.sendDate = sendDate;
     newsletter.template = template;
     await getTemplate();
-    await updatePreview(template);
+    // await updatePreview(template);
 }
 
 async function updateBackgroundImage(event) {
@@ -226,7 +225,7 @@ async function updateBackgroundImage(event) {
     toastMessage("Updated background image", true);
 
     await getTemplate();
-    await updatePreview(template);
+    // await updatePreview(template);
 }
 
 async function sendPreviewEmail(event, previewEmail = true, emailAddress = null, userId = null) {
@@ -293,20 +292,20 @@ function safeSubstitute(templateString, data) {
   });
 }
 
-async function updatePreview(templateString) {
-    let content = document.getElementById("content").value;
-    content = adjustContentProperties(content);
-    const data = {
-        tracking_url: "",
-        preview: newsletter.preview,
-        content: content,
-        businessAddress: "Address not available in preview only",
-        backgroundImageUrl: newsletter.backgroundImageUrl || "",
-        backgroundColor: newsletter.backgroundColor || ""
-    };
-    const previewData = safeSubstitute(templateString, data);
-    previewWindow.postMessage(previewData);
-}
+// async function updatePreview(templateString) {
+//     let content = document.getElementById("content").value;
+//     content = adjustContentProperties(content);
+//     const data = {
+//         tracking_url: "",
+//         preview: newsletter.preview,
+//         content: content,
+//         businessAddress: "Address not available in preview only",
+//         backgroundImageUrl: newsletter.backgroundImageUrl || "",
+//         backgroundColor: newsletter.backgroundColor || ""
+//     };
+//     const previewData = safeSubstitute(templateString, data);
+//     previewWindow.postMessage(previewData);
+// }
 
 function adjustContentProperties(content) {
   // Replace H1 Tags with H2 Tags
@@ -413,30 +412,30 @@ async function populateNewsletterTemplateDropdown() {
     }
 }
 
-function setSplit(preview = false) {  
-  if (preview) {
-    splitInstance = Split(['#split-0', '#split-1'], {
-      minSize: [500, 100],
-      gutterSize: 16,
-    });
-    document.getElementById('split-1').style.display = "flex";
-    document.getElementById('newsletterStats').style.display = "none";
-    document.getElementById('formSubject').style.display = "none";
-    document.getElementById('formPreview').style.display = "none";
-    document.getElementById('livePreviewNewsletter').textContent = "Hide Live Preview";
-  } else {
-    splitInstance.destroy(preserveStyles = true);
-    splitInstance = Split(['#split-0'], {
-                        minSize: 500,
-                        gutterSize: 16,
-                    });
-    document.getElementById('split-1').style.display = "none";
-    document.getElementById('newsletterStats').style.display = "flex";
-    document.getElementById('formSubject').style.display = "block";
-    document.getElementById('formPreview').style.display = "block";
-    document.getElementById('livePreviewNewsletter').textContent = "Show Live Preview";
-  }
-}
+// function setSplit(preview = false) {  
+//   if (preview) {
+//     splitInstance = Split(['#split-0', '#split-1'], {
+//       minSize: [500, 100],
+//       gutterSize: 16,
+//     });
+//     document.getElementById('split-1').style.display = "flex";
+//     document.getElementById('newsletterStats').style.display = "none";
+//     document.getElementById('formSubject').style.display = "none";
+//     document.getElementById('formPreview').style.display = "none";
+//     document.getElementById('livePreviewNewsletter').textContent = "Hide Live Preview";
+//   } else {
+//     splitInstance.destroy(preserveStyles = true);
+//     splitInstance = Split(['#split-0'], {
+//                         minSize: 500,
+//                         gutterSize: 16,
+//                     });
+//     document.getElementById('split-1').style.display = "none";
+//     document.getElementById('newsletterStats').style.display = "flex";
+//     document.getElementById('formSubject').style.display = "block";
+//     document.getElementById('formPreview').style.display = "block";
+//     document.getElementById('livePreviewNewsletter').textContent = "Show Live Preview";
+//   }
+// }
 
 async function getProfileDetails() {
     const profile = await apiRequest("profile");
@@ -527,11 +526,11 @@ window.addEventListener("DOMContentLoaded", async (e) => {
     }
 });
 
-addEventListener("trix-change", () => {
-  if (livePreview) {
-    updatePreview(template);
-  }
-});
+// addEventListener("trix-change", () => {
+//   if (livePreview) {
+//     updatePreview(template);
+//   }
+// });
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
@@ -614,12 +613,12 @@ document.getElementById("sendToOne").onclick = async (event) => {
   singleSendModal.style.display = "block";
 };
 
-document.getElementById("livePreviewNewsletter").onclick = async (event) => {
-  livePreview = livePreview ? false : true;
-  livePreview ? getTemplate() : null;
-  livePreview ? setSplit(true) : setSplit(false);
-  updatePreview(template);
-}
+// document.getElementById("livePreviewNewsletter").onclick = async (event) => {
+//   livePreview = livePreview ? false : true;
+//   livePreview ? getTemplate() : null;
+//   livePreview ? setSplit(true) : setSplit(false);
+//   updatePreview(template);
+// }
 
 document.getElementById("sendToEveryone").onclick = async (event) => {
   if (newsletter.stage !== "Draft") {
@@ -664,3 +663,49 @@ document.getElementById("deleteNewsletter").onclick = async () => {
   }
 }
 //#endregion
+
+window.addEventListener("message", (event) => {
+    receiving = true;
+    // attachmentFlipper(false);
+    if (editor) editor.editor.loadHTML(event.data.content || "");
+    editor.editor.setSelectedRange(event.data.selection);
+    setTimeout(async () => {
+        receiving = false;
+    }, 100);
+});
+
+addEventListener("trix-change", () => {
+    if (!receiving) {
+        let selection = editor.editor.getSelectedRange();
+        let content = document.getElementById("content").value;
+        let data = {
+            "content": content,
+            "selection": selection
+        }
+        document.getElementById("livePreviewTest").contentWindow.postMessage(data);
+    }
+});
+
+addEventListener("trix-selection-change", () => {
+    if (!receiving) {
+        let selection = editor.editor.getSelectedRange();
+        let content = document.getElementById("content").value;
+        let data = {
+            "content": content,
+            "selection": selection
+        }
+        document.getElementById("livePreviewTest").contentWindow.postMessage(data);
+    }
+});
+
+addEventListener("trix-file-accept", () => {
+  if (receiving) {
+    preventDefault();
+  }
+});
+
+editor.addEventListener("trix-attachment-add", async (event) => {
+    if (event.attachment.file) {
+        await uploadImage(event);
+    }
+});
