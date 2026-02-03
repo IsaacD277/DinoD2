@@ -47,8 +47,9 @@
         <table id="subscribersTable">
         <thead>
             <tr>
-            <th>First Name</th>
-            <th>Email Address</th>
+            <!-- <th> </th> -->
+            <th>Name</th>
+            <th>Email</th>
             <th>Joined</th>
             <th>Status</th>
             </tr>
@@ -58,20 +59,6 @@
         </tbody>
         </table>
     </div>
-
-  <div id="addSubscriberModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <div class="modal-inputs">
-        <input type="text" id="firstName" placeholder="First Name" required autocomplete="given-name">
-      </div>
-      <div class="modal-inputs">
-        <input type="email" id="emailAddress" placeholder="Email Address" required autocomplete="email">
-      </div>
-      <button id="submitSettings" class="modal-button" type="submit">Submit</button>
-    </div>
-  </div>
-
   <div id="snackbar"></div>
 
   <script src="/src/utilities/authentication.js"></script>

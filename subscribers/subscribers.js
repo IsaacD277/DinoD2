@@ -3,6 +3,7 @@ const form = document.getElementById("addaSubscriber");
 const searchInput = document.getElementById("search");
 var addSubscriberModal = document.getElementById("addSubscriberModal");
 let subscribers;
+let profile;
 
 //#endregion
 
@@ -51,6 +52,9 @@ function renderSubscribers(subscribers, filter = "") {
         const subscribeDate = sub.created ? new Date(sub.created) : null;
         const tr = document.createElement("tr");
 
+        const selection = document.createElement("td");
+        selection.innerHTML = '<input type="checkbox" name="select">'
+
         const nameTd = document.createElement("td");
         nameTd.textContent = sub.firstName || "";
 
@@ -65,6 +69,7 @@ function renderSubscribers(subscribers, filter = "") {
         const statusTd = document.createElement("td");
         statusTd.textContent = sub.condition || "";
 
+        // tr.appendChild(selection);
         tr.appendChild(nameTd);
         tr.appendChild(emailTd);
         tr.appendChild(joinedTd);
@@ -90,39 +95,10 @@ function totalSubscribers(subscribers) {
     }
 }
 
-async function createSubscriber() {
-    try {
-        const emailAddress = document.getElementById('emailAddress').value
-        const firstName = document.getElementById('firstName').value
-        if ((emailAddress || firstName) === (null || undefined || "")) {
-            throw new Error("No name or email address for new subscriber.");
-        }
-
-        const payload = {
-            emailAddress: emailAddress,
-            firstName: firstName
-        };
-        const data = await apiRequest("subscribers", "POST", payload)
-        toastMessage("Created new subscriber", true);
-
-        posthog.capture('subscriber_created', {
-            subscriberId: data.userId,
-            successful: true
-        });
-
-        document.getElementById('emailAddress').value = "";
-        document.getElementById('firstName').value = "";
-        getSubscribers();
-        return;
-    } catch (error) {
-        console.error(error);
-        toastMessage("Failed to create new subscriber", false);
-
-        posthog.capture('subscriber_created', {
-            successful: false
-        });
-        return;
-    }
+async function getProfileDetails() {
+    profile = await apiRequest("profile");
+    saveToLocalStorage("profile", profile);
+    console.log(profile);
 }
 
 //#endregion
@@ -143,6 +119,7 @@ window.addEventListener("authReady", async (e) => {
             return null;
         }
         getSubscribers();
+        getProfileDetails();
     }
 });
 
@@ -155,26 +132,15 @@ searchInput.addEventListener("input", (e) => {
     }
 });
 
-window.onclick = function(event) {
-  if (event.target == addSubscriberModal) {
-    addSubscriberModal.style.display = "none";
-  }
-} 
 //#endregion
 
 //#region BUTTONS
-// form.addEventListener("submit", async (e) => {
-//     e.preventDefault();
-//     await createSubscriber();
-// });
-
 document.getElementById("addSubscriber").onclick = () => {
-    addSubscriberModal.style.display = "block";
+    let url = profile.signupURL;
+    if (url) {
+        window.open(url, '_blank').focus();
+    } else {
+        toastMessage("No signup page created. Email support@isaacd2.com", false)
+    }
 }
-
-document.getElementById("submitSettings").onclick = async => {
-  createSubscriber();
-  addSubscriberModal.style.display = "none";
-}
-
 //#endregion
