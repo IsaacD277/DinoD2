@@ -12,8 +12,10 @@ body {
     color: #2D3142;
     display: flex;
 }
+
 .container {
-    max-width: 900px;
+    max-width: 1200px;
+    width: 1000px;
     margin: 0 auto;
     background: white;
     border-radius: 20px;
@@ -43,13 +45,31 @@ body {
 .heading {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
+}
+
+#saveStatus {
+    color: #949494;
+    margin-bottom: -8px;
+    font-size: small;
+}
+
+.horizontal {
+    display: inline-block;
+}
+
+#editPencil {
+    color: #2D3142;
+    font-size: small;
+}
+
+[contenteditable]:focus {
+    outline-offset: 2px;
 }
 
 h1 {
     color: #2D3142;
     font-size: 24px;
-    margin-bottom: 0.5em;
     font-weight: 700;
 }
 
@@ -111,7 +131,7 @@ h1 {
 .show {display: block;}
 
 form {
-    margin-top: 2em;
+    margin-top: 0.25em;
 }
 
 label { 
