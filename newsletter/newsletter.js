@@ -15,7 +15,7 @@ const previewWindow = document.querySelector("iframe").contentWindow;
 let profile;
 let autoSave = null;
 let masterAutoSave = null;
-const notSaved = "Pending save";
+const notSaved = "Saving...";
 const saved = "Saved";
 // Pulls newsletterId from the url
 const newsletterId = getNewsletterId();

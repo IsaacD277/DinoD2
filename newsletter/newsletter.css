@@ -52,6 +52,7 @@ body {
     color: #949494;
     margin-bottom: -8px;
     font-size: small;
+    transform: translateX(15px);
 }
 
 .horizontal {
