@@ -58,6 +58,13 @@ function setNewsletterDetails(newsletter) {
 function loadTrixContent(data) {
   trixInitialized = false;
   if (editor) editor.editor.loadHTML(data || "");
+  let selection = editor.editor.getSelectedRange();
+  let content = document.getElementById("content").value;
+  let syncData = {
+      "content": content,
+      "selection": selection
+  }
+  document.getElementById("livePreviewTest").contentWindow.postMessage(syncData);
   trixInitialized = true;
 }
 
