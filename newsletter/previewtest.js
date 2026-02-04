@@ -20,6 +20,7 @@ addEventListener("trix-change", () => {
     if (!receiving) {
         let selection = editor.editor.getSelectedRange();
         let content = document.getElementById("content").value;
+        // content = adjustContentProperties(content);
         let data = {
             "content": content,
             "selection": selection
@@ -115,4 +116,11 @@ async function uploadImage(event = null, image = null) {
         console.error("Error uploading image:", error);
         return false;
     }
+}
+
+function adjustContentProperties(content) {
+  // Replace H1 Tags with H2 Tags
+  content = content.replace(/<h1(\s*[^>]*)>/g, "<h2$1>");
+  content = content.replace(/<\/h1>/g, "</h2>");
+  return content;
 }

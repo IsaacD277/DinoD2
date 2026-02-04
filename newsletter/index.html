@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Newsletter Editor</title>
+  <title>DinoD2</title>
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Trix Editor for rich text content -->
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
   <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="/src/style/topbar.css" />
   <link rel="stylesheet" href="/src/style/popups.css" />
   <link rel="stylesheet" href="/index.css" />
@@ -21,6 +22,11 @@
         defaults: '2025-05-24',
         person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
     })
+  </script>
+  <script>
+    document.addEventListener("trix-before-initialize", () => {
+      Trix.config.blockAttributes.heading1.tagName = 'h2';
+    });
   </script>
 </head>
 <body>
@@ -41,12 +47,15 @@
   </header>
     <div class="container">
         <div class="heading">
-          <h1 id="pageTitle">Newsletter Editor</h1>
+          <div>
+            <p id="saveStatus">Saved</p>
+            <i class="fa fa-pencil" id="editPencil"></i>
+            <h1 class="horizontal">Subject:</h1>
+            <h1 class="horizontal" id="pageTitle" contenteditable></h1>
+          </div>
           <div class="dropdown">
               <button id="newsletterOptions" class="dropbtn">More</button>
               <div id="myDropdown" class="dropdown-content">
-                <a id="changeSettings">Change Settings</a>
-                <a id="previewNewsletter">Preview Newsletter</a>
                 <a id="sendToOne">Send to Individual</a>
                 <a id="sendToEveryone" class="tooltip">Send to All Subscribers
                   <span id="alreadySent" class="tooltiptext">This will send the newsletter to all of your subscribers</span>
@@ -56,68 +65,13 @@
           </div>
         </div>
 
-        <div id="newsletterStats" class="stats">
-          <p>Sends: <span id="sendCount">0</span></p>
-          <p>Open Rate: <span id="openRate">0%</span></p>
-        </div>
-
-        <form id="newsletterForm">
-          <label id="formSubject">
-              Subject:
-              <input type="text" id="subject" name="subject" placeholder="Enter newsletter subject" required>
-          </label>
-
-          <label id="formPreview">
-              Preview Text:
-              <input type="text" id="preview" name="preview" placeholder="Short preview text that appears in email clients">
-          </label>
-
-          <trix-toolbar id="myToolbar"></trix-toolbar>
-          <iframe id="livePreviewTest" name="previewTest" style="width: 100%; height: 50vh;" title="Email Preview Test" src="livePreviewTest.html"></iframe>
-
-          <!-- <label for="content">Newsletter Content:</label> -->
-          <input id="content" type="hidden" name="content">
-          <trix-editor toolbar="myToolbar" input="content" style="display: none;"></trix-editor>
-
-          <button type="submit">Save Newsletter</button>
-        </form>
-
-        <div class="action-buttons">
-        <button id="backBtn">← Back to Newsletters</button>
-        </div>
+        <trix-toolbar id="myToolbar"></trix-toolbar>
+        <iframe id="livePreviewTest" name="previewTest" style="width: 100%; height: 75vh; border: 2px solid #e2e8f0; border-radius: 0 0 8px 8px;" title="Email Preview Test" src="livePreviewTest.html"></iframe>
+        <input id="content" type="hidden" name="content">
+        <trix-editor toolbar="myToolbar" input="content" style="display: none;"></trix-editor>
 
         <div id="snackbar"></div>
     </div>
-  <div id="newsletterSettingsModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <label>
-        Send Date:
-        <input type="date" id="sendDate" name="sendDate" class="third-width">
-      </label>
-
-      <label>
-        Template:
-        <select id="newsletterTemplateDropdown">
-          <option value="">Loading...</option>
-        </select>
-      </label>
-
-      <div id="forKesla">
-        <label>
-          Background Image:
-          <input type="file" id="backgroundImage" name="filename">
-        </label>
-
-        <label>
-          Box Background Color: <br>
-          <input type="color" id="backgroundColor" name="backgroundColor" value="#240b0b" alpha>
-        </label>
-      </div>
-      <button id="submitSettings" class="modal-button" type="submit">Submit</button>
-    </div>
-  </div>
-
   <div id="singleSendModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>

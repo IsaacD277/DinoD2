@@ -7,20 +7,16 @@ let newsletter = null;
 let trixAttachmentListener = false;
 let form;
 let backgroundImageform;
-var newsletterSettingsModal = document.getElementById("newsletterSettingsModal");
 var singleSendModal = document.getElementById("singleSendModal");
 var preview = document.getElementById("previewContainer");
 const editor = document.querySelector("trix-editor");
 let livePreview = false;
-let template = null;
 const previewWindow = document.querySelector("iframe").contentWindow;
-// var splitInstance = Split(['#split-0'], {
-//     minSize: 500,
-//     gutterSize: 16,
-// });
 let profile;
-// attachmentFlipper();
-
+let autoSave = null;
+let masterAutoSave = null;
+const notSaved = "Pending save";
+const saved = "Saved";
 // Pulls newsletterId from the url
 const newsletterId = getNewsletterId();
 
@@ -46,17 +42,8 @@ async function loadNewsletterData(newsletterId) {
 }
 
 function setNewsletterDetails(newsletter) {
-  document.getElementById('subject').value = newsletter.subject || "Untitled";
-  document.getElementById('preview').value = newsletter.preview || "";
   newsletterData = newsletter.content || "";
-  document.getElementById('sendDate').value = newsletter.sendDate || "";
-  document.getElementById('pageTitle').textContent = "Edit Newsletter";
-  let backgroundColor = document.getElementById('backgroundColor').value
-  if (newsletter.backgroundColor) {
-    backgroundColor = newsletter.backgroundColor.substring(0,7);
-  } else {
-    backgroundColor = "#000000"
-  }
+  document.getElementById('pageTitle').textContent = newsletter.subject || "Click here to edit the subject";
 
   if (newsletter.stage == "Sent") {
     document.getElementById("sendToEveryone").style.color = "#767676"
@@ -71,16 +58,16 @@ function setNewsletterDetails(newsletter) {
 }
 
 function loadTrixContent(data) {
+  trixInitialized = false;
   if (editor) editor.editor.loadHTML(data || "");
+  trixInitialized = true;
 }
 
 function handleTrixInitialize(event) {
-  trixInitialized = true;
   // If data already fetched, load it now
   if (newsletterData) {
     loadTrixContent(newsletterData);
     if (!trixAttachmentListener) {
-
       trixAttachmentListener = true;
     }
   }
@@ -154,27 +141,22 @@ async function uploadImage(event = null, image = null) {
     }
 }
 
-async function saveNewsletter(event) {
-    event.preventDefault();
-    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
+async function saveNewsletter() {
 
-    subject = document.getElementById('subject').value || "";
-    preview = document.getElementById('preview').value || "";
+    subject = document.getElementById('pageTitle').innerText || "";
     content = document.getElementById('content').value || "";
-    sendDate = document.getElementById('sendDate').value || "";
-    template = selectedTemplate.id || "1fc8d430-4f93-478c-8ecc-c47807f1ab07";
+    template = "1fc8d430-4f93-478c-8ecc-c47807f1ab07";
 
     const payload = {
       subject: subject,
-      preview: preview,
       content: content,
-      sendDate: sendDate,
       template: template
     };
 
     const data = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "PATCH", payload);
 
-    toastMessage("Newsletter saved", true);
+    document.getElementById("saveStatus").innerText = saved;
+    // toastMessage("Newsletter saved", true);
     posthog.capture('newsletter_saved', {
       newsletterId: newsletterId,
       successful: true,
@@ -184,52 +166,11 @@ async function saveNewsletter(event) {
 
     // Update local variable
     Object.assign(newsletter, payload);
-}
 
-async function updateSettings() {
-    sendDate = document.getElementById('sendDate').value || "";
-    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
-    template = selectedTemplate.id || "";
-    color = `${document.getElementById('backgroundColor').value}d7` || "#240b0bd7";
-
-    const payload = {
-      sendDate: sendDate,
-      template: template,
-      backgroundColor: color
-    };
-
-    const data = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "PATCH", payload);
-    toastMessage("Updated settings", true);
-
-    // Update local sendDate
-    newsletter.sendDate = sendDate;
-    newsletter.template = template;
-    await getTemplate();
-    // await updatePreview(template);
-}
-
-async function updateBackgroundImage(event) {
-    event.preventDefault();
-
-    let image = document.getElementById("backgroundImage").files[0];
-
-    const link = await uploadImage(null, image);
-    console.log(link);
-
-    const payload = {
-        backgroundImageUrl: link
-    };
-
-    const data = await apiRequest(`newsletters/${encodeURIComponent(newsletterId)}`, "PATCH", payload);
-
-    toastMessage("Updated background image", true);
-
-    await getTemplate();
-    // await updatePreview(template);
 }
 
 async function sendPreviewEmail(event, previewEmail = true, emailAddress = null, userId = null) {
-  await saveNewsletter(event);
+  await saveNewsletter();
 
   payload = {
     newsletterId: newsletterId,
@@ -242,8 +183,8 @@ async function sendPreviewEmail(event, previewEmail = true, emailAddress = null,
   return true;
 }
 
-async function broadcastEmail(event) {
-  await saveNewsletter(event);
+async function broadcastEmail() {
+  await saveNewsletter();
 
   const payload = {
     newsletterId: newsletterId
@@ -272,14 +213,6 @@ async function deleteNewsletter() {
   return true;
 }
 
-async function getTemplate() {
-    const data = await apiRequest(`templates/${encodeURIComponent(newsletter.template)}`);
-
-    const response = await fetch(data.s3Url);
-
-    template = await response.text();
-}
-
 function safeSubstitute(templateString, data) {
   // Use a regular expression to find all ${placeholder} patterns
   return templateString.replace(/\${(.*?)}/g, (match, key) => {
@@ -292,58 +225,43 @@ function safeSubstitute(templateString, data) {
   });
 }
 
-// async function updatePreview(templateString) {
-//     let content = document.getElementById("content").value;
-//     content = adjustContentProperties(content);
-//     const data = {
-//         tracking_url: "",
-//         preview: newsletter.preview,
-//         content: content,
-//         businessAddress: "Address not available in preview only",
-//         backgroundImageUrl: newsletter.backgroundImageUrl || "",
-//         backgroundColor: newsletter.backgroundColor || ""
-//     };
-//     const previewData = safeSubstitute(templateString, data);
-//     previewWindow.postMessage(previewData);
-// }
-
 function adjustContentProperties(content) {
   // Replace H1 Tags with H2 Tags
   content = content.replace(/<h1(\s*[^>]*)>/g, "<h2$1>");
   content = content.replace(/<\/h1>/g, "</h2>");
   
-  // Make images fit again
-  const pattern = /<img(?<attrs>.*?)>/gs;
+  // // Make images fit again
+  // const pattern = /<img(?<attrs>.*?)>/gs;
 
-  function replacer(match, attrs) {
-    // Remove existing width and height attributes
-    let modifiedAttrs = attrs.replace(/width="\d+"/gi, '');
-    modifiedAttrs = modifiedAttrs.replace(/height="\d+"/gi, '');
+  // function replacer(match, attrs) {
+  //   // Remove existing width and height attributes
+  //   let modifiedAttrs = attrs.replace(/width="\d+"/gi, '');
+  //   modifiedAttrs = modifiedAttrs.replace(/height="\d+"/gi, '');
 
-    // The desired inline style
-    const newStyle = 'width: 500px; height: auto;';
+  //   // The desired inline style
+  //   const newStyle = 'width: 500px; height: auto;';
 
-    // Check if an existing style attribute exists
-    if (/style="[^"]*"/gi.test(modifiedAttrs)) {
-      // Append the new style to the existing style
-      modifiedAttrs = modifiedAttrs.replace(
-        /style="([^"]*)"/gi,
-        (match, existingStyles) => {
-          // Ensure space separation and prevent duplicate styles
-          const combinedStyle = `${existingStyles.trim()} ${newStyle.trim()}`.trim();
-          return `style="${combinedStyle}"`;
-        }
-      );
-    } else {
-      // If no existing style attribute, add a new one
-      modifiedAttrs += ` style="${newStyle}"`;
-    }
+  //   // Check if an existing style attribute exists
+  //   if (/style="[^"]*"/gi.test(modifiedAttrs)) {
+  //     // Append the new style to the existing style
+  //     modifiedAttrs = modifiedAttrs.replace(
+  //       /style="([^"]*)"/gi,
+  //       (match, existingStyles) => {
+  //         // Ensure space separation and prevent duplicate styles
+  //         const combinedStyle = `${existingStyles.trim()} ${newStyle.trim()}`.trim();
+  //         return `style="${combinedStyle}"`;
+  //       }
+  //     );
+  //   } else {
+  //     // If no existing style attribute, add a new one
+  //     modifiedAttrs += ` style="${newStyle}"`;
+  //   }
 
-    // Return the modified image tag
-    return `<img${modifiedAttrs}>`;
-  }
+  //   // Return the modified image tag
+  //   return `<img${modifiedAttrs}>`;
+  // }
   
-  content = content.replace(pattern, replacer);
+  // content = content.replace(pattern, replacer);
   
   // Center Captions
     // I can uncomment this in the future. I need to figure out how to make this part work on the backend first.
@@ -386,57 +304,6 @@ function resizeImages(html) {
   return html.replace(pattern, replacer);
 }
 
-async function populateNewsletterTemplateDropdown() {
-    const templateDropdown = document.getElementById("newsletterTemplateDropdown");
-    const templates = await apiRequest("templates");
-
-    templateDropdown.innerHTML = "";
-    let foundActive = false;
-    let templateValue = null;
-    templates.forEach(template => {
-        if (template.stage == "Active") {
-            foundActive = true;
-            const opt = document.createElement("option");
-            opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
-            opt.textContent = template.friendlyName;
-            if (newsletter.template === template.id) {
-                templateValue = opt.value;
-            }
-            templateDropdown.appendChild(opt);
-        }
-    });
-    templateDropdown.value = templateValue;
-
-    if (!foundActive) {
-        templateDropdown.innerHTML = '<option value="">No active templates</option>';
-    }
-}
-
-// function setSplit(preview = false) {  
-//   if (preview) {
-//     splitInstance = Split(['#split-0', '#split-1'], {
-//       minSize: [500, 100],
-//       gutterSize: 16,
-//     });
-//     document.getElementById('split-1').style.display = "flex";
-//     document.getElementById('newsletterStats').style.display = "none";
-//     document.getElementById('formSubject').style.display = "none";
-//     document.getElementById('formPreview').style.display = "none";
-//     document.getElementById('livePreviewNewsletter').textContent = "Hide Live Preview";
-//   } else {
-//     splitInstance.destroy(preserveStyles = true);
-//     splitInstance = Split(['#split-0'], {
-//                         minSize: 500,
-//                         gutterSize: 16,
-//                     });
-//     document.getElementById('split-1').style.display = "none";
-//     document.getElementById('newsletterStats').style.display = "flex";
-//     document.getElementById('formSubject').style.display = "block";
-//     document.getElementById('formPreview').style.display = "block";
-//     document.getElementById('livePreviewNewsletter').textContent = "Show Live Preview";
-//   }
-// }
-
 async function getProfileDetails() {
     const profile = await apiRequest("profile");
     populateSubscriberListDropdown(profile);
@@ -469,6 +336,15 @@ async function populateSubscriberListDropdown(profile) {
     }
 }
 
+function selectElementContents(element) {
+    var range = document.createRange();
+    range.selectNodeContents(element);
+    var select = window.getSelection();
+    range.collapse(false);
+    select.removeAllRanges();
+    select.addRange(range);
+}
+
 //#endregion
 
 //#region EVENT LISTENERS
@@ -483,17 +359,8 @@ window.addEventListener("authReady", async (e) => {
             console.warn("No id_token found after auth ready.");
             return null;
         }
-
-        form = document.getElementById('newsletterForm');
         newsletter = await loadNewsletterData(newsletterId);
-        await getStats();
-        getTemplate();
-        populateNewsletterTemplateDropdown();
         profile = getProfileDetails();
-
-        if (form) {
-          form.addEventListener("submit", saveNewsletter);
-        }
 
         const existingEditor = document.querySelector("trix-editor");
         if (existingEditor && existingEditor.editor) {
@@ -503,22 +370,16 @@ window.addEventListener("authReady", async (e) => {
 });
 
 window.addEventListener("DOMContentLoaded", async (e) => {
+    let localNewsletters = grabFromLocal("newsletters");
+    let localNewsletter = localNewsletters.find(({ id }) => id === newsletterId);
+    setNewsletterDetails(localNewsletter);
     token = localStorage.getItem("id_token");
     if (!token) {
         console.warn("No id_token found after auth ready.");
         return null;
     }
-
-    form = document.getElementById('newsletterForm');
     newsletter = await loadNewsletterData(newsletterId);
-    await getStats();
-    getTemplate();
-    populateNewsletterTemplateDropdown();
     profile = getProfileDetails();
-
-    if (form) {
-      form.addEventListener("submit", saveNewsletter);
-    }
 
     const existingEditor = document.querySelector("trix-editor");
     if (existingEditor && existingEditor.editor) {
@@ -526,46 +387,34 @@ window.addEventListener("DOMContentLoaded", async (e) => {
     }
 });
 
-// addEventListener("trix-change", () => {
-//   if (livePreview) {
-//     updatePreview(template);
-//   }
-// });
-
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
-  if (event.target == newsletterSettingsModal) {
-    newsletterSettingsModal.style.display = "none";
-  }
-
   if (event.target == singleSendModal) {
-    newsletterSettingsModal.style.display = "none";
+    singleSendModal.style.display = "none";
   }
-} 
-
-document.getElementById("backgroundImage").onchange = (event) => {
-  updateBackgroundImage(event);
 }
 
+document.getElementById("pageTitle").onblur = () => {
+  document.getElementById("saveStatus").innerText = notSaved;
+  saveNewsletter();
+}
+
+document.getElementById('pageTitle').addEventListener('keydown', function(e) {
+  if (e.key == "Enter") {    // if Enter has been pressed
+    e.preventDefault();
+    e.target.blur();
+  }
+});
 //#endregion
 
 //#region BUTTONS
-document.getElementById('backBtn').onclick = () => {
-  posthog.capture('newslettersPage_visit');
-  window.location.href = "/";
-};
-
-document.getElementById("changeSettings").onclick = () => {
-  newsletterSettingsModal.style.display = "block";
-};
-
-document.getElementById("submitSettings").onclick = async => {
-  updateSettings();
-  newsletterSettingsModal.style.display = "none";
+document.getElementById("editPencil").onclick = () => {
+  let pencil = document.getElementById("pageTitle");
+  pencil.focus();selectElementContents(pencil);
+  document.getElementById("saveStatus").innerText = notSaved;
 }
 
 document.getElementsByClassName("close")[0].onclick = () => {
-  newsletterSettingsModal.style.display = "none";
   singleSendModal.style.display = "none";
 }
 
@@ -592,33 +441,9 @@ document.getElementById("submitSend").onclick = async (event) => {
   }
 }
 
-document.getElementById("previewNewsletter").onclick = async (event) => {
-  if (confirm("You are sending an email to yourself to preview.\nAre you sure you want to continue?")) {
-    const success = await sendPreviewEmail(event);
-
-    posthog.capture('newsletter_previewed', {
-      newsletterId: newsletterId,
-      successful: success
-    });
-
-    if (success) {
-      toastMessage("Preview email sent", true);
-    } else {
-      toastMessage("Failed to send preview", false);
-    }
-  }
-};
-
 document.getElementById("sendToOne").onclick = async (event) => {
   singleSendModal.style.display = "block";
 };
-
-// document.getElementById("livePreviewNewsletter").onclick = async (event) => {
-//   livePreview = livePreview ? false : true;
-//   livePreview ? getTemplate() : null;
-//   livePreview ? setSplit(true) : setSplit(false);
-//   updatePreview(template);
-// }
 
 document.getElementById("sendToEveryone").onclick = async (event) => {
   if (newsletter.stage !== "Draft") {
@@ -664,6 +489,7 @@ document.getElementById("deleteNewsletter").onclick = async () => {
 }
 //#endregion
 
+//#region EDITOR SYNC
 window.addEventListener("message", (event) => {
     receiving = true;
     // attachmentFlipper(false);
@@ -675,14 +501,37 @@ window.addEventListener("message", (event) => {
 });
 
 addEventListener("trix-change", () => {
+    clearTimeout(autoSave);
     if (!receiving) {
         let selection = editor.editor.getSelectedRange();
         let content = document.getElementById("content").value;
+        // content = adjustContentProperties(content);
         let data = {
             "content": content,
             "selection": selection
         }
         document.getElementById("livePreviewTest").contentWindow.postMessage(data);
+    }
+    if (trixInitialized) {
+        document.getElementById("saveStatus").innerText = notSaved;
+        clearTimeout(autoSave);
+        autoSave = null;
+        autoSave = setTimeout(() => {
+          saveNewsletter();
+          window.clearTimeout(masterAutoSave);
+          window.clearTimeout(autoSave);
+          masterAutoSave = null;
+          autoSave = null;
+        }, 3000);
+        clearTimeout(masterAutoSave);
+        masterAutoSave = null;
+        masterAutoSave = setTimeout(() => {
+          saveNewsletter();
+          window.clearTimeout(autoSave);
+          window.clearTimeout(masterAutoSave);
+          autoSave = null;
+          masterAutoSave = null;
+        }, 30000);
     }
 });
 
@@ -709,3 +558,4 @@ editor.addEventListener("trix-attachment-add", async (event) => {
         await uploadImage(event);
     }
 });
+//#endregion
