@@ -52,9 +52,7 @@ function setNewsletterDetails(newsletter) {
     document.getElementById("alreadySent").style.visibility = "hidden"
   }
 
-  if (trixInitialized && !trixAttachmentListener) {
-    loadTrixContent(newsletterData);
-  }
+  loadTrixContent(newsletterData);
 }
 
 function loadTrixContent(data) {
@@ -514,24 +512,22 @@ addEventListener("trix-change", () => {
     }
     if (trixInitialized) {
         document.getElementById("saveStatus").innerText = notSaved;
-        clearTimeout(autoSave);
-        autoSave = null;
         autoSave = setTimeout(() => {
           saveNewsletter();
-          window.clearTimeout(masterAutoSave);
-          window.clearTimeout(autoSave);
+          clearTimeout(masterAutoSave);
+          clearTimeout(autoSave);
           masterAutoSave = null;
           autoSave = null;
         }, 3000);
-        clearTimeout(masterAutoSave);
-        masterAutoSave = null;
-        masterAutoSave = setTimeout(() => {
-          saveNewsletter();
-          window.clearTimeout(autoSave);
-          window.clearTimeout(masterAutoSave);
-          autoSave = null;
-          masterAutoSave = null;
-        }, 30000);
+        if (masterAutoSave == null) {
+          masterAutoSave = setTimeout(() => {
+            saveNewsletter();
+            clearTimeout(autoSave);
+            clearTimeout(masterAutoSave);
+            autoSave = null;
+            masterAutoSave = null;
+          }, 30000);
+        }
     }
 });
 
