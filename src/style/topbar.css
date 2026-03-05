@@ -105,32 +105,14 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0px;
-    padding: 0px 20px 0px 20px;
+    padding: 0px 0px 0px 0px;
 }
 
 .section h3 {
     color: var(--basic-text-color);
     font-size: 22px;
     font-weight: 700;
-}
-
-.section button {
-    padding: 5px 10px;
-    border-radius: 9999px;
-    border: 2px solid var(--accent-color);
-    background: var(--accent-color);
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: 'Montserrat', sans-serif;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.section button:hover {
-    background: white;
-    color: var(--accent-color);
-    transform: scale(1.005);
+    flex-grow: 1;
 }
 /* BOTTOM Section Styles */
 

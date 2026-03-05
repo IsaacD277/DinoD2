@@ -1,0 +1,119 @@
+.action-button-icon {
+    width: 35px;
+    height: 35px;
+    background: #DF6656;
+    border: none;
+    border-radius: 21.5px;
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 24px;
+    display: block;
+    align-items: center;
+    text-align: center;
+    color: #FFFFFF;
+    cursor: pointer;
+    box-shadow: 0px 4px 12px 4px #00000010;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.action-button-icon:hover {
+    transform: scale(1.03);
+    opacity: 0.9;
+}
+
+.action-button {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    border: 2px solid var(--accent-color);
+    background: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.action-button:hover {
+    background: white;
+    color: var(--accent-color);
+    transform: scale(1.005);
+}
+
+
+
+.custom-search {
+    width: 209px;
+    height: 35px;
+    background: #EDF1F0;
+    border: 2px solid #edf1f0;
+    border-radius: 28px;
+    outline: none;
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 17px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    color: #707674;
+    padding: 0.75em;
+    margin: 0px 10px;
+    /* transition: all 0.3s ease; */
+}
+
+/* Tables */
+table {
+    table-layout: fixed;
+    width: 100%;
+    margin: 10px auto;
+    border-collapse: separate;
+    border-radius: 20px;
+    overflow: hidden;
+    border-spacing: 0;
+    box-shadow: 0px 4px 12px 4px #00000010;
+}
+
+thead {
+    background-color: #F7D4A7;
+}
+
+
+
+th,
+td {
+    padding: 0.6em;
+    vertical-align: center;
+}
+
+th {
+    font-weight: 100;
+}
+
+td:nth-child(2) {
+    font-weight: bold;
+}
+
+
+tr :nth-child(1) {
+    text-align: center;
+    width: 4%;
+}
+
+tr :nth-child(2),
+tr :nth-child(3) {
+    text-align: left;
+    width: 35%;
+}
+
+tr :nth-child(4),
+tr :nth-child(5) {
+    text-align: left;
+    width: 13%
+}
+
+tbody tr:nth-child(even) {
+    background-color: #eeeeee;
+}

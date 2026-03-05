@@ -53,7 +53,8 @@ function renderSubscribers(subscribers, filter = "") {
         const tr = document.createElement("tr");
 
         const selection = document.createElement("td");
-        selection.innerHTML = '<input type="checkbox" name="select">'
+        // selection.innerHTML = '<input type="checkbox" name="select">'
+        selection.textContent = "x";
 
         const nameTd = document.createElement("td");
         nameTd.textContent = sub.firstName || "";
@@ -69,7 +70,7 @@ function renderSubscribers(subscribers, filter = "") {
         const statusTd = document.createElement("td");
         statusTd.textContent = sub.condition || "";
 
-        // tr.appendChild(selection);
+        tr.appendChild(selection);
         tr.appendChild(nameTd);
         tr.appendChild(emailTd);
         tr.appendChild(joinedTd);
