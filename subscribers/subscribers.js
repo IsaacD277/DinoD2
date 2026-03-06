@@ -8,14 +8,14 @@ let profile;
 //#endregion
 
 //#region FUNCTIONS
-function compare( a, b ) {
-  if ( a.created < b.created ){
-    return 1;
-  }
-  if ( a.created > b.created ){
-    return -1;
-  }
-  return 0;
+function compare(a, b) {
+    if (a.created < b.created) {
+        return 1;
+    }
+    if (a.created > b.created) {
+        return -1;
+    }
+    return 0;
 }
 
 async function getSubscribers() {
@@ -53,7 +53,8 @@ function renderSubscribers(subscribers, filter = "") {
         const tr = document.createElement("tr");
 
         const selection = document.createElement("td");
-        selection.innerHTML = '<input type="checkbox" name="select">'
+        selection.innerHTML = `<input type="checkbox" name="select" id="checkbox${sub.id}" style="width: 13px"/>`
+        // selection.textContent = "x";
 
         const nameTd = document.createElement("td");
         nameTd.textContent = sub.firstName || "";
@@ -67,23 +68,55 @@ function renderSubscribers(subscribers, filter = "") {
             : "unknown";
 
         const statusTd = document.createElement("td");
+        statusTd.className = sub.condition === "Subscribed" ? "option-pill positive" : "option-pill negative"
         statusTd.textContent = sub.condition || "";
 
-        // tr.appendChild(selection);
+        tr.appendChild(selection);
         tr.appendChild(nameTd);
         tr.appendChild(emailTd);
         tr.appendChild(joinedTd);
         tr.appendChild(statusTd);
 
-        tr.addEventListener ("click", () => {
-            posthog.capture('subscriberEditorPage_visit', {
-                subscriberId: sub.id
-            });
-            window.location.href = `/subscribers/subscriber/?subscriberId=${sub.id}`;
-        })
+        tr.addEventListener("click", (e) => {
+            if (e.target.type === "checkbox") {
+                anyCheckboxes();
+            } else {
+                posthog.capture('subscriberEditorPage_visit', {
+                    subscriberId: sub.id
+                });
+                window.location.href = `/subscribers/subscriber/?subscriberId=${sub.id}`;
+            }
+        });
 
         tbody.appendChild(tr);
     });
+}
+
+async function updateSubscribers(condition) {
+    const checkedCheckboxes = document.getElementById("subscribersTable").querySelectorAll('input[type="checkbox"]:checked');
+    const payload = {
+        condition: condition
+    };
+    checkedCheckboxes.forEach(async sub => {
+        const subscriberId = sub.id.slice(8);
+
+        if (condition === 'Deleted') {
+            await apiRequest(`subscribers/${encodeURIComponent(subscriberId)}`, "DELETE");
+
+        } else {
+            await apiRequest(`subscribers/${encodeURIComponent(subscriberId)}`, "PATCH", payload);
+
+            posthog.capture('subscriber_updated', {
+                subscriberId: subscriberId,
+                toCondition: condition,
+                successful: true
+            });
+        }
+    });
+    setTimeout(async () => {
+        await getSubscribers();
+        anyCheckboxes();
+    }, 150);
 }
 
 function totalSubscribers(subscribers) {
@@ -98,7 +131,16 @@ function totalSubscribers(subscribers) {
 async function getProfileDetails() {
     profile = await apiRequest("profile");
     saveToLocalStorage("profile", profile);
-    console.log(profile);
+}
+
+function anyCheckboxes() {
+    const checkedCheckboxes = document.getElementById("subscribersTable").querySelectorAll('input[type="checkbox"]:checked');
+
+    if (checkedCheckboxes.length > 0) {
+        document.getElementById("subscriberOptions").hidden = false;
+    } else {
+        document.getElementById("subscriberOptions").hidden = true;
+    }
 }
 
 //#endregion
@@ -143,4 +185,19 @@ document.getElementById("addSubscriber").onclick = () => {
         toastMessage("No signup page created. Email support@isaacd2.com", false)
     }
 }
+
+document.getElementById("subscribeOption").onclick = async (event) => {
+    await updateSubscribers("Subscribed");
+    toastMessage("Successfully updated subscribers", true);
+};
+
+document.getElementById("unsubscribeOption").onclick = async (event) => {
+    await updateSubscribers("Unsubscribed");
+    toastMessage("Successfully updated subscribers", true);
+};
+
+document.getElementById("deleteOption").onclick = async (event) => {
+    await updateSubscribers("Deleted");
+    toastMessage("Successfully deleted subscribers", true);
+};
 //#endregion
