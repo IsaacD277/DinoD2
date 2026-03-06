@@ -44,6 +44,14 @@
       <div class="section-header">
         <h3 id="subscribersHeading">Subscribers</h3>
         <div style="width:max-content"></div>
+        <div class="dropdown">
+          <button id="subscriberOptions" class="dropbtn" hidden>More</button>
+          <div id="myDropdown" class="dropdown-content">
+            <a id="subscribeOption">Subscribed</a>
+            <a id="unsubscribeOption">Unsubscribed</a>
+            <a id="deleteOption">Deleted</a>
+          </div>
+        </div>
         <input class="custom-search" type="search" id="search" placeholder="Search...">
         <button class="action-button-icon" id="addSubscriber">+</button>
       </div>
@@ -51,7 +59,7 @@
         <table id="subscribersTable">
           <thead>
             <tr>
-              <th> </th>
+              <th></th>
               <th>Name</th>
               <th>Email</th>
               <th>Joined</th>
