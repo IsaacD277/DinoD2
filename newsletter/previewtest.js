@@ -1,5 +1,7 @@
 const editor = document.querySelector("trix-editor");
 let receiving = false;
+let autoSave = null;
+let masterAutoSave = null;
 const newsletterId = getNewsletterId();
 
 function getNewsletterId() {
@@ -124,3 +126,34 @@ function adjustContentProperties(content) {
   content = content.replace(/<\/h1>/g, "</h2>");
   return content;
 }
+
+addEventListener("trix-change", () => {
+    clearTimeout(autoSave);
+    if (!receiving) {
+        let selection = editor.editor.getSelectedRange();
+        let content = document.getElementById("content").value;
+        let data = {
+            "content": content,
+            "selection": selection
+        }
+    }
+    if (trixInitialized) {
+        document.getElementById("saveStatus").innerText = notSaved;
+        autoSave = setTimeout(() => {
+          saveNewsletter();
+          clearTimeout(masterAutoSave);
+          clearTimeout(autoSave);
+          masterAutoSave = null;
+          autoSave = null;
+        }, 3000);
+        if (masterAutoSave == null) {
+          masterAutoSave = setTimeout(() => {
+            saveNewsletter();
+            clearTimeout(autoSave);
+            clearTimeout(masterAutoSave);
+            autoSave = null;
+            masterAutoSave = null;
+          }, 30000);
+        }
+    }
+});

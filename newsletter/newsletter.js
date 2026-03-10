@@ -510,7 +510,6 @@ addEventListener("trix-change", () => {
     if (!receiving) {
         let selection = editor.editor.getSelectedRange();
         let content = document.getElementById("content").value;
-        // content = adjustContentProperties(content);
         let data = {
             "content": content,
             "selection": selection
