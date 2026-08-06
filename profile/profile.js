@@ -46,7 +46,6 @@ function setProfileDetails(profile) {
         day: "numeric"
     };
     populatePreviewEmailDropdown(profile);
-    populateNewsletterTemplateDropdown(profile);
     // Editable fields
     document.getElementById('newsletterName').value = profile.newsletterName || "";
     document.getElementById('businessAddress').value = profile.businessAddress || "";
@@ -90,39 +89,11 @@ async function populatePreviewEmailDropdown(profile) {
     }
 }
 
-async function populateNewsletterTemplateDropdown(profile) {
-    const templateDropdown = document.getElementById("newsletterTemplateDropdown");
-    const templates = await apiRequest("templates");
-
-    templateDropdown.innerHTML = "";
-    let foundActive = false;
-    let templateValue = null;
-    templates.forEach(template => {
-        if (template.stage == "Active") {
-            foundActive = true;
-            const opt = document.createElement("option");
-            opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
-            opt.textContent = template.friendlyName;
-            if (profile.preferredTemplate === template.id) {
-                templateValue = opt.value;
-            }
-            templateDropdown.appendChild(opt);
-        }
-    });
-    templateDropdown.value = templateValue;
-
-    if (!foundActive) {
-        templateDropdown.innerHTML = '<option value="">No active templates</option>';
-    }
-}
-
 async function saveProfileDetails() {
     const selectedPreviewEmail = JSON.parse(document.getElementById('previewEmailDropdown').value);
-    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
 
     const payload = {
         newsletterName: document.getElementById('newsletterName').value || "",
-        preferredTemplate: selectedTemplate.id || "",
         businessAddress: document.getElementById('businessAddress').value || "",
         domain: document.getElementById('domain').value || "",
         owner: document.getElementById('owner').value || "",

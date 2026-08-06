@@ -1,3 +1,7 @@
+.material-symbols-outlined {
+    color: #DF6656;
+}
+
 .action-button-icon {
     width: 35px;
     height: 35px;
@@ -13,7 +17,7 @@
     text-align: center;
     color: #FFFFFF;
     cursor: pointer;
-    box-shadow: 0px 4px 12px 4px #00000010;
+    box-shadow: 0px 4px 12px 4px #00000005;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -143,17 +147,20 @@ tbody tr:nth-child(even) {
 
 .dropdown {
   position: relative;
-  display: inline-block;
+  display: flex;
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
+  top: 100%;
   background-color: #FFFFFF;
   min-width: 220px;
-  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.1);
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.25);
   z-index: 1;
+  right: 0;
   border-radius: 20px;
+  overflow: hidden;
 }
 
 .dropdown-content a {
