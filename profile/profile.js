@@ -45,14 +45,10 @@ function setProfileDetails(profile) {
         month: "short",
         day: "numeric"
     };
-    populatePreviewEmailDropdown(profile);
     // Editable fields
-    document.getElementById('newsletterName').value = profile.newsletterName || "";
     document.getElementById('businessAddress').value = profile.businessAddress || "";
-    document.getElementById('domain').value = profile.domain || "";
     document.getElementById('owner').value = profile.owner || "";
     document.getElementById('replyToEmail').value = profile.replyToEmail || "";
-    document.getElementById('senderName').value = profile.senderName || "";
     document.getElementById('senderEmail').value = profile.senderEmail || "";
 
     // Read-only fields
@@ -63,46 +59,13 @@ function setProfileDetails(profile) {
     document.getElementById('plan').value = profile.plan || "";
 }
 
-async function populatePreviewEmailDropdown(profile) {
-    const userDropdown = document.getElementById("previewEmailDropdown");
-    const subscribers = await apiRequest("subscribers");
-
-    userDropdown.innerHTML = "";
-    let foundActive = false;
-    let previewEmailValue = null;
-    subscribers.forEach(sub => {
-        if (sub.condition == "Subscribed") {
-            foundActive = true;
-            const opt = document.createElement("option");
-            opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-            opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-            if (profile.previewEmailId === sub.id) {
-                previewEmailValue = opt.value;
-            }
-            userDropdown.appendChild(opt);
-        }
-    });
-    userDropdown.value = previewEmailValue;
-
-    if (!foundActive) {
-        userDropdown.innerHTML = '<option value="">No active users</option>';
-    }
-}
-
 async function saveProfileDetails() {
-    const selectedPreviewEmail = JSON.parse(document.getElementById('previewEmailDropdown').value);
-
     const payload = {
-        newsletterName: document.getElementById('newsletterName').value || "",
         businessAddress: document.getElementById('businessAddress').value || "",
-        domain: document.getElementById('domain').value || "",
         owner: document.getElementById('owner').value || "",
         ownerEmail: document.getElementById('ownerEmail').value || "",
         replyToEmail: document.getElementById('replyToEmail').value || "",
-        senderName: document.getElementById('senderName').value || "",
-        senderEmail: document.getElementById('senderEmail').value || "",
-        previewEmail: selectedPreviewEmail.email || "",
-        previewEmailId: selectedPreviewEmail.id || ""
+        senderEmail: document.getElementById('senderEmail').value || ""
     };
 
     const updated = await apiRequest("profile", "PATCH", payload);

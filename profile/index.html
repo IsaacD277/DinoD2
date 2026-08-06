@@ -46,8 +46,8 @@
       <form id="profileForm">
         <!-- Editable Fields -->
         <label>
-          Newsletter Name:
-          <input type="text" id="newsletterName" name="newsletterName" placeholder="Enter your newsletter name">
+          Your Name:
+          <input type="text" id="owner" name="owner" placeholder="John Doe">
         </label>
 
         <label>
@@ -56,35 +56,14 @@
         </label>
 
         <label>
-          Domain:
-          <input type="text" id="domain" name="domain" placeholder="yourdomain.com">
-        </label>
-
-        <label>
-          Owner Name:
-          <input type="text" id="owner" name="owner" placeholder="John Doe">
-        </label>
-
-        <label>
           Reply-To Email Address:
           <input type="text" id="replyToEmail" name="replyToEmail" placeholder="reply@example.com">
         </label>
 
         <label>
-          Sender Name:
-          <input type="text" id="senderName" name="senderName" placeholder="Newsletter Team">
-        </label>
-
-        <label>
-          Sender Email Address:
-          <input type="email" id="senderEmail" name="senderEmail" placeholder="newsletter@dinod2.com">
-        </label>
-
-        <label>
-          Default preview email:
-          <select id="previewEmailDropdown">
-            <option value="">Loading...</option>
-          </select>
+          Send Emails From:
+          <input type="text" id="senderEmail" name="senderEmail" placeholder="newsletter">
+          <p>@dinod2.com</p>
         </label>
 
         <!-- Read-only Information -->
@@ -92,7 +71,7 @@
           <h2>Account Information</h2>
 
           <label>
-            Owner Email Address:
+            Your Email Address:
             <input type="email" id="ownerEmail" name="ownerEmail" readonly>
           </label>
           
