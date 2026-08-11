@@ -133,10 +133,10 @@ button[type="submit"]:active {
     gap: 0.5em;
 }
 
-.readonly-section h2::before {
+/* .readonly-section h2::before {
     content: "🔒";
     font-size: 1.2em;
-}
+} */
 
 #stage {
     margin-top: 1em;

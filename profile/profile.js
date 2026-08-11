@@ -13,12 +13,12 @@ if (apiCheckbox) {
 
 //#region FUNCTIONS
 function initializeAPIMode() {
-    const apiCheckbox = document.getElementById("apiSelector");
+    // const apiCheckbox = document.getElementById("apiSelector");
     const version = localStorage.getItem("version");
     if (version == "development") {
-        apiCheckbox.checked = true;
+        // apiCheckbox.checked = true;
     } else {
-        apiCheckbox.checked = false;
+        // apiCheckbox.checked = false;
     }
 }
 
@@ -49,7 +49,7 @@ function setProfileDetails(profile) {
     document.getElementById('businessAddress').value = profile.businessAddress || "";
     document.getElementById('owner').value = profile.owner || "";
     document.getElementById('replyToEmail').value = profile.replyToEmail || "";
-    document.getElementById('senderEmail').value = profile.senderEmail || "";
+    document.getElementById('senderEmail').value = profile.senderEmail.slice(0, -11) || "";
 
     // Read-only fields
     document.getElementById('ownerEmail').value = profile.ownerEmail || "";
@@ -65,7 +65,7 @@ async function saveProfileDetails() {
         owner: document.getElementById('owner').value || "",
         ownerEmail: document.getElementById('ownerEmail').value || "",
         replyToEmail: document.getElementById('replyToEmail').value || "",
-        senderEmail: document.getElementById('senderEmail').value || ""
+        senderEmail: `${document.getElementById('senderEmail').value}@dinod2.com` || ""
     };
 
     const updated = await apiRequest("profile", "PATCH", payload);
@@ -99,11 +99,11 @@ window.addEventListener("authReady", async (e) => {
     }
 });
 
-window.onclick = function(event) {
-  if (event.target == appSettingsModal) {
-    appSettingsModal.style.display = "none";
-  }
-} 
+// window.onclick = function(event) {
+//   if (event.target == appSettingsModal) {
+//     appSettingsModal.style.display = "none";
+//   }
+// } 
 
 //#endregion
 
@@ -121,8 +121,8 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-document.getElementById("changeSettings").onclick = () => {
-  appSettingsModal.style.display = "block";
-};
+// document.getElementById("changeSettings").onclick = () => {
+//   appSettingsModal.style.display = "block";
+// };
 
 //#endregion
