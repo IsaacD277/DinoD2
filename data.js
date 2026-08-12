@@ -47,7 +47,7 @@ function renderNewsletterCards(newsletters) {
         const content = document.createElement("div");
         content.innerHTML = `
             <p class="subject">${newsletter.subject ? truncate(newsletter.subject, 35) : "Untitled"}</p>
-            <p class="preview">${newsletter.preview ? truncate(newsletter.preview, 50) : "No Preview"}</p>
+            <p class="preview">${newsletter.preview ? newsletter.preview : "No Preview"}</p>
             <div class="bottom">
                 <div class="statusRectangle">
                     <p class="status">${newsletter.stage}</p>

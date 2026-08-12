@@ -42,59 +42,64 @@
     </div>
   </header>
 
-  <div class="container">
-    <h1 id="pageTitle">Settings</h1>
-    <div>
-      <form id="profileForm">
-        <!-- Editable Fields -->
-        <label>
-          Your Name:
-          <input type="text" id="owner" name="owner" placeholder="John Doe">
-        </label>
-
-        <label>
-          Business Address (Legally Required):
-          <input type="text" id="businessAddress" name="businessAddress" placeholder="123 Main St, City, State">
-        </label>
-
-        <label>
-          Reply-To Email Address:
-          <input type="text" id="replyToEmail" name="replyToEmail" placeholder="reply@example.com">
-        </label>
-
-        <!-- Read-only Information -->
-        <div class="readonly-section">
-          <h2>Account Information (View Only)</h2>
-
+  <div class="content">
+    <div class="section">
+      <div class="section-header">
+        <h3 id="profileHeading">Settings</h3>
+        <div style="width:max-content"></div>
+        <button class="action-button" id="saveProfile">Save</button>
+      </div>
+      <div>
+        <form id="profileForm">
+          <!-- Editable Fields -->
           <label>
-            Your Email Address:
-            <input type="email" id="ownerEmail" name="ownerEmail" readonly>
+            Your Name:
+            <input type="text" id="owner" name="owner" placeholder="John Doe">
           </label>
 
           <label>
-            Send Emails From:
-            <input type="text" id="senderEmail" name="senderEmail" placeholder="newsletter" readonly>
-            <p>@dinod2.com</p>
+            Business Address (Legally Required):
+            <input type="text" id="businessAddress" name="businessAddress" placeholder="123 Main St, City, State">
           </label>
 
           <label>
-            Joined:
-            <input type="text" id="createdAt" name="joined" readonly>
+            Reply-To Email Address:
+            <input type="text" id="replyToEmail" name="replyToEmail" placeholder="reply@example.com">
           </label>
 
-          <label>
-            Max Subscribers:
-            <input type="text" id="maxSubscribers" name="maxSubscribers" readonly>
-          </label>
+          <!-- Read-only Information -->
+          <div class="readonly-section">
+            <h2>Account Information (View Only)</h2>
+            <p style="margin-top: -20px;">Email support@isaacd2.com to change these settings</p>
 
-          <label>
-            Plan:
-            <input type="text" id="plan" name="plan" readonly>
-          </label>
-        </div>
+            <label>
+              Your Email Address:
+              <input type="email" id="ownerEmail" name="ownerEmail" readonly>
+            </label>
 
-        <button type="submit">Save Changes</button>
-      </form>
+            <label>
+              Send Emails From:
+              <input type="text" id="senderEmail" name="senderEmail" placeholder="newsletter" readonly>
+              <p>@dinod2.com</p>
+            </label>
+
+            <label>
+              Joined:
+              <input type="text" id="createdAt" name="joined" readonly>
+            </label>
+
+            <label>
+              Max Subscribers:
+              <input type="text" id="maxSubscribers" name="maxSubscribers" readonly>
+            </label>
+
+            <label>
+              Plan:
+              <input type="text" id="plan" name="plan" readonly>
+            </label>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 

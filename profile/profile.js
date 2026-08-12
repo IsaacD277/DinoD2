@@ -109,9 +109,7 @@ window.addEventListener("authReady", async (e) => {
 
 //#region BUTTONS
 // Save profile (update)
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+document.getElementById("saveProfile").onclick = async () => {
     const success = await saveProfileDetails();
 
     if (success) {
@@ -119,10 +117,5 @@ form.addEventListener('submit', async (e) => {
     } else {
         toastMessage("Error saving profile", success);
     }
-});
-
-// document.getElementById("changeSettings").onclick = () => {
-//   appSettingsModal.style.display = "block";
-// };
-
+};
 //#endregion
