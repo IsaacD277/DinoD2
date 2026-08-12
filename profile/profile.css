@@ -1,21 +1,19 @@
 * {
     box-sizing: border-box;
     margin: 0;
-    padding: 0;
-}
-
-.content {
-    padding: 80px 20px 40px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    /* padding: 0; */
 }
 
 body { 
     font-family: 'Montserrat', sans-serif;
     background-color: #ebf5f6;
     min-height: 100vh;
-    padding: 80px 20px 40px 20px;
+    /* padding: 80px 20px 40px 20px; */
     color: #2D3142;
+}
+
+.section {
+    padding: 40px;
 }
 
 .container {
@@ -24,7 +22,7 @@ body {
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 2.5em;
+    padding: 20px;
 }
 
 h1 {
@@ -53,7 +51,7 @@ input[type="email"],
 textarea,
 select { 
     width: 100%;
-    padding: 0.75em;
+    padding: 0.5em;
     margin-top: 0.25em;
     border: 2px solid #edf1f0;
     border-radius: 8px;
@@ -84,36 +82,6 @@ input:read-only:focus {
     box-shadow: none;
 }
 
-.container button { 
-    margin-top: 1.5em;
-    padding: 0.85em 2em;
-    border: none;
-    border-radius: 9999px;
-    font-size: 1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    font-family: inherit;
-}
-
-button[type="submit"] {
-    background-color: #E17163;
-    color: white;
-    width: 100%;
-    font-size: 1.05em;
-    box-shadow: 0 4px 12px rgba(225, 113, 99, 0.3);
-}
-
-button[type="submit"]:hover {
-    background-color: #277A7D;
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(39, 122, 125, 0.4);
-}
-
-button[type="submit"]:active {
-    transform: scale(1.02);
-}
-
 .readonly-section {
     background-color: #F7D4A7;
     padding: 1.5em;
@@ -133,14 +101,14 @@ button[type="submit"]:active {
     gap: 0.5em;
 }
 
-.readonly-section h2::before {
+/* .readonly-section h2::before {
     content: "🔒";
     font-size: 1.2em;
-}
+} */
 
 #stage {
     margin-top: 1em;
-    padding: 1em;
+    /* padding: 1em; */
     border-radius: 8px;
     text-align: center;
     font-weight: 500;
@@ -161,11 +129,11 @@ button[type="submit"]:active {
 /* Responsive design */
 @media (max-width: 768px) {
     body {
-    padding: 1em;
+    /* padding: 1em; */
     }
 
     .container {
-    padding: 1.5em;
+    /* padding: 1.5em; */
     }
 
     h1 {

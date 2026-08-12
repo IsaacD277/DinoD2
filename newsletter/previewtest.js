@@ -1,44 +1,20 @@
 const editor = document.querySelector("trix-editor");
 let receiving = false;
+let autoSave = null;
+let masterAutoSave = null;
 const newsletterId = getNewsletterId();
 
 function getNewsletterId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('newsletterId');
+    const params = new URLSearchParams(window.location.search);
+    return params.get('newsletterId');
 }
 
 window.addEventListener("message", (event) => {
     receiving = true;
     if (editor) editor.editor.loadHTML(event.data.content || "");
-    editor.editor.setSelectedRange(event.data.selection);
     setTimeout(async () => {
         receiving = false;
     }, 100);
-});
-
-addEventListener("trix-change", () => {
-    if (!receiving) {
-        let selection = editor.editor.getSelectedRange();
-        let content = document.getElementById("content").value;
-        // content = adjustContentProperties(content);
-        let data = {
-            "content": content,
-            "selection": selection
-        }
-        window.top.postMessage(data);
-    }
-});
-
-addEventListener("trix-selection-change", () => {
-    if (!receiving) {
-        let selection = editor.editor.getSelectedRange();
-        let content = document.getElementById("content").value;
-        let data = {
-            "content": content,
-            "selection": selection
-        }
-        window.top.postMessage(data);
-    }
 });
 
 editor.addEventListener("trix-attachment-add", (event) => {
@@ -60,7 +36,7 @@ async function getUploadURL() {
 
 async function uploadImage(event = null, image = null) {
     if (!image) {
-      image = event.attachment.file;
+        image = event.attachment.file;
     }
 
     console.log(image);
@@ -89,12 +65,12 @@ async function uploadImage(event = null, image = null) {
             const imageLink = responseObject.url + responseObject.fields.key;
 
             if (event) {
-              var attributes = {
-                  url: imageLink,
-                  href: imageLink + "?content-disposition=attachment"
-              };
+                var attributes = {
+                    url: imageLink,
+                    href: imageLink + "?content-disposition=attachment"
+                };
 
-              event.attachment.setAttributes(attributes);
+                event.attachment.setAttributes(attributes);
             }
 
             posthog.capture('newsletter_image_uploaded', {
@@ -105,9 +81,9 @@ async function uploadImage(event = null, image = null) {
             });
 
             if (event) {
-              return true;
+                return true;
             }
-            
+
             return imageLink;
         } else {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -119,8 +95,50 @@ async function uploadImage(event = null, image = null) {
 }
 
 function adjustContentProperties(content) {
-  // Replace H1 Tags with H2 Tags
-  content = content.replace(/<h1(\s*[^>]*)>/g, "<h2$1>");
-  content = content.replace(/<\/h1>/g, "</h2>");
-  return content;
+    // Replace H1 Tags with H2 Tags
+    content = content.replace(/<h1(\s*[^>]*)>/g, "<h2$1>");
+    content = content.replace(/<\/h1>/g, "</h2>");
+    return content;
 }
+
+function sendUpdate(save = false) {
+    let data;
+    if (save) {
+        let content = document.getElementById("content").value;
+        content = adjustContentProperties(content);
+        data = {
+            "content": content,
+            "status": "save"
+        }
+    } else {
+        data = {
+            "status": "update"
+        }
+    }
+    window.top.postMessage(data);
+}
+
+addEventListener("trix-change", () => {
+    if (!receiving) {
+        sendUpdate();
+        clearTimeout(autoSave);
+        if (!receiving) {
+            autoSave = setTimeout(() => {
+                sendUpdate(true);
+                clearTimeout(masterAutoSave);
+                clearTimeout(autoSave);
+                masterAutoSave = null;
+                autoSave = null;
+            }, 3000);
+            if (masterAutoSave == null) {
+                masterAutoSave = setTimeout(() => {
+                    sendUpdate(true);
+                    clearTimeout(autoSave);
+                    clearTimeout(masterAutoSave);
+                    autoSave = null;
+                    masterAutoSave = null;
+                }, 30000);
+            }
+        }
+    }
+});

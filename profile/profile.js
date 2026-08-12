@@ -13,12 +13,12 @@ if (apiCheckbox) {
 
 //#region FUNCTIONS
 function initializeAPIMode() {
-    const apiCheckbox = document.getElementById("apiSelector");
+    // const apiCheckbox = document.getElementById("apiSelector");
     const version = localStorage.getItem("version");
     if (version == "development") {
-        apiCheckbox.checked = true;
+        // apiCheckbox.checked = true;
     } else {
-        apiCheckbox.checked = false;
+        // apiCheckbox.checked = false;
     }
 }
 
@@ -45,16 +45,11 @@ function setProfileDetails(profile) {
         month: "short",
         day: "numeric"
     };
-    populatePreviewEmailDropdown(profile);
-    populateNewsletterTemplateDropdown(profile);
     // Editable fields
-    document.getElementById('newsletterName').value = profile.newsletterName || "";
     document.getElementById('businessAddress').value = profile.businessAddress || "";
-    document.getElementById('domain').value = profile.domain || "";
     document.getElementById('owner').value = profile.owner || "";
     document.getElementById('replyToEmail').value = profile.replyToEmail || "";
-    document.getElementById('senderName').value = profile.senderName || "";
-    document.getElementById('senderEmail').value = profile.senderEmail || "";
+    document.getElementById('senderEmail').value = profile.senderEmail.slice(0, -11) || "";
 
     // Read-only fields
     document.getElementById('ownerEmail').value = profile.ownerEmail || "";
@@ -64,74 +59,13 @@ function setProfileDetails(profile) {
     document.getElementById('plan').value = profile.plan || "";
 }
 
-async function populatePreviewEmailDropdown(profile) {
-    const userDropdown = document.getElementById("previewEmailDropdown");
-    const subscribers = await apiRequest("subscribers");
-
-    userDropdown.innerHTML = "";
-    let foundActive = false;
-    let previewEmailValue = null;
-    subscribers.forEach(sub => {
-        if (sub.condition == "Subscribed") {
-            foundActive = true;
-            const opt = document.createElement("option");
-            opt.value = JSON.stringify({ id: sub.id, email: sub.emailAddress });
-            opt.textContent = `${sub.firstName} (${sub.emailAddress})`;
-            if (profile.previewEmailId === sub.id) {
-                previewEmailValue = opt.value;
-            }
-            userDropdown.appendChild(opt);
-        }
-    });
-    userDropdown.value = previewEmailValue;
-
-    if (!foundActive) {
-        userDropdown.innerHTML = '<option value="">No active users</option>';
-    }
-}
-
-async function populateNewsletterTemplateDropdown(profile) {
-    const templateDropdown = document.getElementById("newsletterTemplateDropdown");
-    const templates = await apiRequest("templates");
-
-    templateDropdown.innerHTML = "";
-    let foundActive = false;
-    let templateValue = null;
-    templates.forEach(template => {
-        if (template.stage == "Active") {
-            foundActive = true;
-            const opt = document.createElement("option");
-            opt.value = JSON.stringify({ id: template.id, name: template.friendlyName });
-            opt.textContent = template.friendlyName;
-            if (profile.preferredTemplate === template.id) {
-                templateValue = opt.value;
-            }
-            templateDropdown.appendChild(opt);
-        }
-    });
-    templateDropdown.value = templateValue;
-
-    if (!foundActive) {
-        templateDropdown.innerHTML = '<option value="">No active templates</option>';
-    }
-}
-
 async function saveProfileDetails() {
-    const selectedPreviewEmail = JSON.parse(document.getElementById('previewEmailDropdown').value);
-    const selectedTemplate = JSON.parse(document.getElementById('newsletterTemplateDropdown').value);
-
     const payload = {
-        newsletterName: document.getElementById('newsletterName').value || "",
-        preferredTemplate: selectedTemplate.id || "",
         businessAddress: document.getElementById('businessAddress').value || "",
-        domain: document.getElementById('domain').value || "",
         owner: document.getElementById('owner').value || "",
         ownerEmail: document.getElementById('ownerEmail').value || "",
         replyToEmail: document.getElementById('replyToEmail').value || "",
-        senderName: document.getElementById('senderName').value || "",
-        senderEmail: document.getElementById('senderEmail').value || "",
-        previewEmail: selectedPreviewEmail.email || "",
-        previewEmailId: selectedPreviewEmail.id || ""
+        senderEmail: `${document.getElementById('senderEmail').value}@dinod2.com` || ""
     };
 
     const updated = await apiRequest("profile", "PATCH", payload);
@@ -165,19 +99,17 @@ window.addEventListener("authReady", async (e) => {
     }
 });
 
-window.onclick = function(event) {
-  if (event.target == appSettingsModal) {
-    appSettingsModal.style.display = "none";
-  }
-} 
+// window.onclick = function(event) {
+//   if (event.target == appSettingsModal) {
+//     appSettingsModal.style.display = "none";
+//   }
+// } 
 
 //#endregion
 
 //#region BUTTONS
 // Save profile (update)
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+document.getElementById("saveProfile").onclick = async () => {
     const success = await saveProfileDetails();
 
     if (success) {
@@ -185,10 +117,5 @@ form.addEventListener('submit', async (e) => {
     } else {
         toastMessage("Error saving profile", success);
     }
-});
-
-document.getElementById("changeSettings").onclick = () => {
-  appSettingsModal.style.display = "block";
 };
-
 //#endregion
